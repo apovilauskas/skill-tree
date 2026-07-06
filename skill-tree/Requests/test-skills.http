@@ -1,0 +1,14 @@
+﻿### Create a new Skill
+POST http://localhost:5169/api/skills
+Content-Type: application/json
+
+{
+  "name": "Comfortable with Linux CLI",
+  "description": "Learn basic bash commands, file navigation, and permissions.",
+  "status": 0
+}
+
+###
+
+### Get all Skills
+GET http://localhost:5169/api/skills
