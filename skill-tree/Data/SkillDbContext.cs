@@ -18,12 +18,13 @@ public class SkillDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<SkillPrerequisite>().
             HasOne(sp => sp.Skill).
-            WithMany().
+            WithMany(s => s.Prerequisites).
             HasForeignKey(f => f.SkillId).
             OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<SkillPrerequisite>().
-            HasOne(sp => sp.Prerequisite).WithMany().
+            HasOne(sp => sp.Prerequisite).
+            WithMany().
             HasForeignKey(f => f.PrerequisiteId).
             OnDelete(DeleteBehavior.Cascade);
     }
