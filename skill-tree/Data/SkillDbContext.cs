@@ -12,6 +12,7 @@ public class SkillDbContext : DbContext
     
     public DbSet<Skill> Skills  => Set<Skill>();
     public DbSet<SkillPrerequisite> Prerequisites => Set<SkillPrerequisite>();
+    public DbSet<SkillLog> SkillLogs => Set<SkillLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +27,12 @@ public class SkillDbContext : DbContext
             HasOne(sp => sp.Prerequisite).
             WithMany().
             HasForeignKey(f => f.PrerequisiteId).
+            OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<SkillLog>().
+            HasOne(s => s.Skill).
+            WithMany(s => s.SkillLogs).
+            HasForeignKey(f => f.SkillId).
             OnDelete(DeleteBehavior.Cascade);
     }
 }
