@@ -9,4 +9,7 @@ public class Skill
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
     public List<SkillPrerequisite> Prerequisites { get; set; } = new();
+    public List<SkillLog> SkillLogs { get; set; } = new();
+    public string Metric {get; set;} = string.Empty; //A label like "Matches", "Hours"
+    public int Target { get; set; } = 100;
 }

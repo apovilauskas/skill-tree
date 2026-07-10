@@ -8,8 +8,6 @@ Content-Type: application/json
   "status": 0
 }
 
-###
-
 ### Get all Skills
 GET http://localhost:5169/api/skills
 
