@@ -5,6 +5,8 @@ namespace skill_tree.tests;
 
 public class SkillServiceTests
 {
+    private readonly SkillTreeService _skillTreeService = new SkillTreeService();
+    
     [Fact]
     public void Progress_WithZeroLogs_ShouldReturnZero()
     {
@@ -15,12 +17,27 @@ public class SkillServiceTests
             Target = 40
         };
         
-        SkillTreeService skillTreeService = new SkillTreeService();
-        double progress = skillTreeService.Progress(testSkill);
+        double progress = _skillTreeService.Progress(testSkill);
         Assert.Equal(0, progress);
     }
 
-    private Skill CreateSkillWithStreak(int daysInARow)
+    [Fact]
+    public void Progress_With30DayStreak_ShouldCalculateMaxConsistency()
+    {
+        Skill skill = CreateSkillWithStreak(30, 1, 1.5);
+        double progress = _skillTreeService.Progress(skill);
+        Assert.Equal(60, progress, 2);
+    }
+    
+    [Fact]
+    public void Progress_With30DaysStreakWithMultipleLogsDaily_ShouldCalculateMaxConsistency()
+    {
+        Skill skill = CreateSkillWithStreak(30, 3, 0.5);
+        double progress = _skillTreeService.Progress(skill);
+        Assert.Equal(60, progress, 2);
+    }
+    
+    private Skill CreateSkillWithStreak(int daysInARow, int logsPerDay, double amountPerLog)
     {
         Skill skill = new Skill
         {
@@ -32,28 +49,20 @@ public class SkillServiceTests
 
         for (int i = 0; i < daysInARow; i++)
         {
-            SkillLog skillLog = new SkillLog
+            for (int j = 0; j < logsPerDay; j++)
             {
-                Id = 0,
-                SkillId = 0,
-                Skill = null,
-                Amount = 1.5,
-                Date = DateTime.UtcNow.Date.AddDays(-i),
-            };
-            skill.SkillLogs.Add(skillLog);
+                SkillLog skillLog = new SkillLog
+                {
+                    Id = 0, 
+                    SkillId = 0,
+                    Skill = null,
+                    Amount = amountPerLog,
+                    Date = DateTime.UtcNow.Date.AddDays(-i),
+                }; 
+                skill.SkillLogs.Add(skillLog);
+            }
         }
-
         return skill;
     }
-
-    [Fact]
-    public void Progress_With30DayStreak_ShouldCalculateMaxConsistency()
-    {
-        Skill skill = CreateSkillWithStreak(30);
-        SkillTreeService skillTreeService = new SkillTreeService();
-        double progress = skillTreeService.Progress(skill);
-        Assert.Equal(60, progress, 2);
-    }
-    
     
 }

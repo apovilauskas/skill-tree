@@ -32,7 +32,7 @@ public class SkillTreeService
                 s = 1;
                 for (int i = 0; i < practicedDays.Count-1; i++)
                 {
-                    if (practicedDays[i] == practicedDays[i + 1]) continue;
+                    // if (practicedDays[i] == practicedDays[i + 1]) continue;
                     if (practicedDays[i] == practicedDays[i + 1].AddDays(1)) s++;
                     else break;
                 } 
