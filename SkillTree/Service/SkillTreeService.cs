@@ -15,7 +15,7 @@ public class SkillTreeService
         double t = skill.Target;
         
         //d1 is total days practiced, d2 is total days since beginning to unlock skill
-        var practicedDays = skill.SkillLogs.Select(s => s.Date).Distinct().OrderBy(d => d.Date).ToList();
+        var practicedDays = skill.SkillLogs.Select(s => s.Date).Distinct().OrderByDescending(d => d.Date).ToList();
         double d1 = practicedDays.Count;
         double d2 = (DateTime.UtcNow - skill.CreatedAt).Days;
         if (d2 < 1) d2 = 1;
@@ -32,6 +32,7 @@ public class SkillTreeService
                 s = 1;
                 for (int i = 0; i < practicedDays.Count-1; i++)
                 {
+                    if (practicedDays[i] == practicedDays[i + 1]) continue;
                     if (practicedDays[i] == practicedDays[i + 1].AddDays(1)) s++;
                     else break;
                 } 
