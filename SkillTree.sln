@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "skill-tree", "skill-tree\skill-tree.csproj", "{E6DFFD46-438C-4C4D-A59A-912CDA99C4C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillTree", "SkillTree\SkillTree.csproj", "{E6DFFD46-438C-4C4D-A59A-912CDA99C4C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillTree.Tests", "SkillTree.Tests\SkillTree.Tests.csproj", "{D2FA6A65-C3B6-4002-AF77-79BD901D9305}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +14,9 @@ Global
 		{E6DFFD46-438C-4C4D-A59A-912CDA99C4C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6DFFD46-438C-4C4D-A59A-912CDA99C4C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6DFFD46-438C-4C4D-A59A-912CDA99C4C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2FA6A65-C3B6-4002-AF77-79BD901D9305}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2FA6A65-C3B6-4002-AF77-79BD901D9305}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2FA6A65-C3B6-4002-AF77-79BD901D9305}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2FA6A65-C3B6-4002-AF77-79BD901D9305}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
