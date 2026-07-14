@@ -11,6 +11,7 @@ public class SkillsController : ControllerBase
 {
     private SkillDbContext _context;
     
+    
     public SkillsController(SkillDbContext context)
     {
         _context = context;

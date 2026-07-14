@@ -1,5 +1,5 @@
 ﻿using skill_tree.Entities;
-using skill_tree.Service;
+using skill_tree.Services;
 
 namespace skill_tree.tests;
 

@@ -1,7 +1,8 @@
 ﻿using System.Runtime.InteropServices.JavaScript;
+using skill_tree.Data;
 using skill_tree.Entities;
 
-namespace skill_tree.Service;
+namespace skill_tree.Services;
 
 public class SkillTreeService
 {
@@ -10,7 +11,7 @@ public class SkillTreeService
         if (skill.SkillLogs.Count == 0) return 0.0;
         if (skill.Target <= 0) return 0.0;
         
-        //if skill quantifiable, v is matches/chapters/attemps and T is 100 or amount needed. If fluid, v is hours done and t is target hours.
+        //v is matches/chapters/attempts/hours and T is target amount.
         double v = skill.SkillLogs.Sum(h => h.Amount);
         double t = skill.Target;
         
@@ -32,7 +33,6 @@ public class SkillTreeService
                 s = 1;
                 for (int i = 0; i < practicedDays.Count-1; i++)
                 {
-                    // if (practicedDays[i] == practicedDays[i + 1]) continue;
                     if (practicedDays[i] == practicedDays[i + 1].AddDays(1)) s++;
                     else break;
                 } 
@@ -44,4 +44,10 @@ public class SkillTreeService
         
         return Math.Min(100.0, v / t * c * 100.0); 
     }
+
+    public bool CanStart(int skillId)
+    {
+        return true;
+    }
+    
 }
