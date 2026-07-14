@@ -1,20 +1,20 @@
 ﻿using Moq;
-using skill_tree.Controllers;
 using skill_tree.Data;
 using skill_tree.Entities;
+using skill_tree.Repositories;
 using skill_tree.Services;
 
 namespace skill_tree.tests;
 
 public class SkillServiceTests
 {
-    private readonly Mock<SkillDbContext> _mockContext;
-    private readonly SkillService _skillService;
+    private readonly Mock<ISkillRepository> _repository;
+    private readonly ISkillService _service;
 
     public SkillServiceTests()
     {
-        _mockContext = new Mock<SkillDbContext>();
-        _skillService = new SkillService(_mockContext.Object);
+        _repository = new Mock<ISkillRepository>();
+        _service = new SkillService(_repository.Object);
     }
     
     [Fact]
@@ -27,7 +27,7 @@ public class SkillServiceTests
             Target = 40
         };
         
-        double progress = _skillService.Progress(testSkill);
+        double progress = _service.Progress(testSkill);
         Assert.Equal(0, progress);
     }
 
@@ -35,7 +35,7 @@ public class SkillServiceTests
     public void Progress_With30DayStreak_ShouldCalculateMaxConsistency()
     {
         Skill skill = CreateSkillWithStreak(30, 1, 1.5);
-        double progress = _skillService.Progress(skill);
+        double progress = _service.Progress(skill);
         Assert.Equal(60, progress, 2);
     }
     
@@ -43,7 +43,7 @@ public class SkillServiceTests
     public void Progress_With30DaysStreakWithMultipleLogsDaily_ShouldCalculateMaxConsistency()
     {
         Skill skill = CreateSkillWithStreak(30, 3, 0.5);
-        double progress = _skillService.Progress(skill);
+        double progress = _service.Progress(skill);
         Assert.Equal(60, progress, 2);
     }
     
@@ -74,5 +74,4 @@ public class SkillServiceTests
         }
         return skill;
     }
-    
 }
