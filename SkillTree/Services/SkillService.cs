@@ -1,16 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using skill_tree.Data;
-using skill_tree.Entities;
+﻿using skill_tree.Entities;
+using skill_tree.Repositories;
 
 namespace skill_tree.Services;
 
 public class SkillService : ISkillService
 {
-    private readonly SkillDbContext _context;
+    private readonly ISkillRepository _repository;
 
-    public SkillService(SkillDbContext context)
+    public SkillService(ISkillRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public double Progress(Skill skill)
@@ -59,26 +58,25 @@ public class SkillService : ISkillService
 
     public async Task<IEnumerable<Skill>> GetAllSkillsAsync()
     {
-       return await _context.Skills.ToListAsync();
+       return await _repository.GetAllAsync();
     }
 
     public async Task CreateSkillAsync(Skill skill)
     {
-        _context.Skills.Add(skill);
-        await _context.SaveChangesAsync();
+        await _repository.AddAsync(skill);
     }
 
     public async Task<bool> CreatePrerequisitesAsync(int skillId, int prerequisiteId)
     {
-        if (!await _context.Skills.AnyAsync(s => s.Id == skillId) || !await _context.Skills.AnyAsync(p => p.Id == prerequisiteId)) return false;
+        if (!await _repository.ExistsAsync(skillId) || !await _repository.ExistsAsync(prerequisiteId))
+        {
+            return false;
+        }
         var skillPrerequisite = new SkillPrerequisite()
         {
             SkillId = skillId,
             PrerequisiteId = prerequisiteId
         };
-                
-        _context.Prerequisites.Add(skillPrerequisite);
-        await _context.SaveChangesAsync();
-        return true;
+        return await _repository.AddPrerequisitesAsync(skillPrerequisite);
     }
 }
