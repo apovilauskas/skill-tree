@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using skill_tree.Data;
 using skill_tree.Entities;
+using skill_tree.Services;
 
 namespace skill_tree.Controllers;
 
@@ -9,41 +9,31 @@ namespace skill_tree.Controllers;
 [Route("api/[controller]")]
 public class SkillsController : ControllerBase
 {
-    private SkillDbContext _context;
+    private readonly ISkillService _skillService;
     
-    
-    public SkillsController(SkillDbContext context)
+    public SkillsController(ISkillService skillService)
     {
-        _context = context;
+        _skillService = skillService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllSkills()
     {
-        var skills = await _context.Skills.ToListAsync();
+        var skills = await _skillService.GetAllSkillsAsync();
         return Ok(skills);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateSkill(Skill skill)
     {
-        _context.Skills.Add(skill);
-        await _context.SaveChangesAsync();
+        await _skillService.CreateSkillAsync(skill);
         return CreatedAtAction(nameof(GetAllSkills), new { id = skill.Id }, skill);
     }
 
     [HttpPost("{skillId}/prerequisites")]
     public async Task<IActionResult> CreatePrerequisites(int skillId, [FromBody] int prerequisiteId)
     {
-        if (!await _context.Skills.AnyAsync(s => s.Id == skillId) || !await _context.Skills.AnyAsync(p => p.Id == prerequisiteId)) return NotFound("Skill not found");
-        var skillPrerequisite = new SkillPrerequisite()
-        {
-            SkillId = skillId,
-            PrerequisiteId = prerequisiteId
-        };
-                
-        _context.Prerequisites.Add(skillPrerequisite);
-        await _context.SaveChangesAsync();
+        if(!await _skillService.CreatePrerequisitesAsync(skillId, prerequisiteId)) return NotFound("Skill not found");
         return Ok("Prerequisite added");
     }
 }

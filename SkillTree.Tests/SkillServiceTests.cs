@@ -1,11 +1,21 @@
-﻿using skill_tree.Entities;
+﻿using Moq;
+using skill_tree.Controllers;
+using skill_tree.Data;
+using skill_tree.Entities;
 using skill_tree.Services;
 
 namespace skill_tree.tests;
 
 public class SkillServiceTests
 {
-    private readonly SkillService _skillService = new SkillService();
+    private readonly Mock<SkillDbContext> _mockContext;
+    private readonly SkillService _skillService;
+
+    public SkillServiceTests()
+    {
+        _mockContext = new Mock<SkillDbContext>();
+        _skillService = new SkillService(_mockContext.Object);
+    }
     
     [Fact]
     public void Progress_WithZeroLogs_ShouldReturnZero()

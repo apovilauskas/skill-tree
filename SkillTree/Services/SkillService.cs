@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+﻿using Microsoft.EntityFrameworkCore;
 using skill_tree.Data;
 using skill_tree.Entities;
 
@@ -6,6 +6,13 @@ namespace skill_tree.Services;
 
 public class SkillService : ISkillService
 {
+    private readonly SkillDbContext _context;
+
+    public SkillService(SkillDbContext context)
+    {
+        _context = context;
+    }
+
     public double Progress(Skill skill)
     {
         if (skill.SkillLogs.Count == 0) return 0.0;
@@ -49,5 +56,29 @@ public class SkillService : ISkillService
     {
         return true;
     }
-    
+
+    public async Task<IEnumerable<Skill>> GetAllSkillsAsync()
+    {
+       return await _context.Skills.ToListAsync();
+    }
+
+    public async Task CreateSkillAsync(Skill skill)
+    {
+        _context.Skills.Add(skill);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> CreatePrerequisitesAsync(int skillId, int prerequisiteId)
+    {
+        if (!await _context.Skills.AnyAsync(s => s.Id == skillId) || !await _context.Skills.AnyAsync(p => p.Id == prerequisiteId)) return false;
+        var skillPrerequisite = new SkillPrerequisite()
+        {
+            SkillId = skillId,
+            PrerequisiteId = prerequisiteId
+        };
+                
+        _context.Prerequisites.Add(skillPrerequisite);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

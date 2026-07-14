@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using skill_tree.Controllers;
 using skill_tree.Data;
 using skill_tree.Repositories;
 using skill_tree.Services;
