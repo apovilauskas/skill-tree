@@ -4,7 +4,7 @@ using skill_tree.Entities;
 
 namespace skill_tree.Services;
 
-public class SkillTreeService
+public class SkillService : ISkillService
 {
     public double Progress(Skill skill)
     {

@@ -5,7 +5,7 @@ namespace skill_tree.tests;
 
 public class SkillServiceTests
 {
-    private readonly SkillTreeService _skillTreeService = new SkillTreeService();
+    private readonly SkillService _skillService = new SkillService();
     
     [Fact]
     public void Progress_WithZeroLogs_ShouldReturnZero()
@@ -17,7 +17,7 @@ public class SkillServiceTests
             Target = 40
         };
         
-        double progress = _skillTreeService.Progress(testSkill);
+        double progress = _skillService.Progress(testSkill);
         Assert.Equal(0, progress);
     }
 
@@ -25,7 +25,7 @@ public class SkillServiceTests
     public void Progress_With30DayStreak_ShouldCalculateMaxConsistency()
     {
         Skill skill = CreateSkillWithStreak(30, 1, 1.5);
-        double progress = _skillTreeService.Progress(skill);
+        double progress = _skillService.Progress(skill);
         Assert.Equal(60, progress, 2);
     }
     
@@ -33,7 +33,7 @@ public class SkillServiceTests
     public void Progress_With30DaysStreakWithMultipleLogsDaily_ShouldCalculateMaxConsistency()
     {
         Skill skill = CreateSkillWithStreak(30, 3, 0.5);
-        double progress = _skillTreeService.Progress(skill);
+        double progress = _skillService.Progress(skill);
         Assert.Equal(60, progress, 2);
     }
     
