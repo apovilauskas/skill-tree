@@ -58,11 +58,9 @@ public class SkillsController : ControllerBase
     [HttpGet("canStart/{skillId}")]
     public async Task<IActionResult> CanStart(int skillId)
     {
-        if (await _skillService.CanStart(skillId) == false)
-        {
-            return BadRequest();
-        }
-
+        var response = await _skillService.CanStart(skillId);
+        if(response == SkillStatus.NotFound) return NotFound("Skill not found");
+        if(response == SkillStatus.Locked) return BadRequest("Skill is locked");
         return Ok("Can Start");
     }
     

@@ -1,4 +1,5 @@
-﻿using skill_tree.Entities;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using skill_tree.Entities;
 using skill_tree.Repositories;
 
 namespace skill_tree.Services;
@@ -92,10 +93,11 @@ public class SkillService : ISkillService
         return true;
     }
     
-    public async Task<bool> CanStart(int skillId)
+    public async Task<SkillStatus> CanStart(int skillId)
     {
         var skill = await _repository.GetSkillAsync(skillId);
-        if(skill == null) return false;
-        return skill.Prerequisites.All(sp => sp.Prerequisite.Status == SkillStatus.Completed);
+        if(skill == null) return SkillStatus.NotFound;
+        if (skill.Prerequisites.Any(sp => sp.Prerequisite.Status != SkillStatus.Completed)) return SkillStatus.Locked;
+        return SkillStatus.InProgress;
     }
 }
