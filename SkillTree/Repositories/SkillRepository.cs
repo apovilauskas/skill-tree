@@ -45,4 +45,14 @@ public class SkillRepository : ISkillRepository
         _context.SkillLogs.Add(skillLog);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> CanStart(int skillId)
+    {
+        var skill = await _context.Skills
+            .Include(skill => skill.Prerequisites)
+            .ThenInclude(p => p.Prerequisite)
+            .FirstOrDefaultAsync(s => s.Id == skillId);
+        if (skill == null) return false;
+        return skill.Prerequisites.All(sp => sp.Prerequisite.Status == SkillStatus.Completed);
+    }
 }

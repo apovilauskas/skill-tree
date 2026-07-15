@@ -51,11 +51,6 @@ public class SkillService : ISkillService
         return Math.Min(100.0, v / t * c * 100.0); 
     }
 
-    public bool CanStart(int skillId)
-    {
-        return true;
-    }
-
     public async Task<IEnumerable<Skill>> GetAllSkillsAsync()
     {
        return await _repository.GetAllAsync();
@@ -95,5 +90,10 @@ public class SkillService : ISkillService
         }
         await _repository.AddLogAsync(skillLog);
         return true;
+    }
+    
+    public async Task<bool> CanStart(int skillId)
+    {
+        return await _repository.CanStart(skillId);
     }
 }

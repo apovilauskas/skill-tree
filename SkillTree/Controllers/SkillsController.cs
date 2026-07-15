@@ -26,7 +26,7 @@ public class SkillsController : ControllerBase
     public async Task<IActionResult> CreateSkill(Skill skill)
     {
         await _skillService.CreateSkillAsync(skill);
-        return CreatedAtAction(nameof(GetAllSkills), new { id = skill.Id }, skill);
+        return Ok(skill);
     }
 
     [HttpPost("{skillId}/prerequisites")]
@@ -54,4 +54,16 @@ public class SkillsController : ControllerBase
         }
         return Ok("Log added");
     }
+
+    [HttpGet("canStart/{skillId}")]
+    public async Task<IActionResult> CanStart(int skillId)
+    {
+        if (await _skillService.CanStart(skillId) == false)
+        {
+            return NotFound("Skill not found");
+        }
+
+        return Ok("Can Start");
+    }
+    
 }

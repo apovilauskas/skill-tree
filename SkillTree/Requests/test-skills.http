@@ -11,7 +11,12 @@ Content-Type: application/json
 ### Get all Skills
 GET http://localhost:5169/api/skills
 
-
 ### Link Skill 2 as a prerequisite to Skill 1
 POST http://localhost:5169/api/skills/1/prerequisites
 Content-Type: application/json
+
+### Check if Skill 1 can be started (Should return true because it has no prerequisites yet)
+GET http://localhost:5169/api/skills/canStart/1
+
+### Check if Skill 1 can be started again (Should return false because its prerequisite, Skill 2, is status 0 / Not Started)
+GET http://localhost:5169/api/skills/canStart/1
