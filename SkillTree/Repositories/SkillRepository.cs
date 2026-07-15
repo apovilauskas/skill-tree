@@ -24,15 +24,25 @@ public class SkillRepository : ISkillRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> AddPrerequisitesAsync(SkillPrerequisite skillPrerequisite)
+    public async Task AddPrerequisitesAsync(SkillPrerequisite skillPrerequisite)
     {
         _context.Prerequisites.Add(skillPrerequisite);
         await _context.SaveChangesAsync();
-        return true;
     }
 
     public async Task<bool> ExistsAsync(int id)
     {
         return await _context.Skills.AnyAsync(s => s.Id == id);
+    }
+
+    public async Task<IEnumerable<SkillLog>> GetLogsAsync(int id)
+    {
+        return await _context.SkillLogs.Where(l => l.SkillId == id).ToListAsync();
+    }
+
+    public async Task AddLogAsync(SkillLog skillLog)
+    {
+        _context.SkillLogs.Add(skillLog);
+        await _context.SaveChangesAsync();
     }
 }

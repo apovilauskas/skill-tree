@@ -6,7 +6,9 @@ public interface ISkillRepository
 {
     public Task<IEnumerable<Skill>> GetAllAsync();
     public Task AddAsync(Skill skill);
-    public Task<bool> AddPrerequisitesAsync(SkillPrerequisite skillPrerequisite);
+    public Task AddPrerequisitesAsync(SkillPrerequisite skillPrerequisite);
     public Task<bool> ExistsAsync(int id);
+    public Task<IEnumerable<SkillLog>> GetLogsAsync(int id);
+    public Task AddLogAsync(SkillLog skillLog);
 
 }

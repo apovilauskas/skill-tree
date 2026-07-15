@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using skill_tree.Data;
 using skill_tree.Entities;
 using skill_tree.Services;
 
@@ -35,5 +34,24 @@ public class SkillsController : ControllerBase
     {
         if(!await _skillService.CreatePrerequisitesAsync(skillId, prerequisiteId)) return NotFound("Skill not found");
         return Ok("Prerequisite added");
+    }
+
+    [HttpGet("{skillId}/logs")]
+    public async Task<IActionResult> GetSkillLogs(int skillId)
+    {
+        var logs = await _skillService.GetSkillLogsAsync(skillId);
+        if(logs == null) return NotFound("Skill not found");
+        return Ok(logs);
+    }
+
+    [HttpPost("{skillId}/logs")]
+    public async Task<IActionResult> CreateSkillLog(int skillId, [FromBody] SkillLog skillLog)
+    {
+        skillLog.SkillId = skillId;
+        if (await _skillService.CreateSkillLogAsync(skillLog) == false)
+        {
+            return NotFound("Skill not found");
+        }
+        return Ok("Log added");
     }
 }

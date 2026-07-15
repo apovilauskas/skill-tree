@@ -77,6 +77,23 @@ public class SkillService : ISkillService
             SkillId = skillId,
             PrerequisiteId = prerequisiteId
         };
-        return await _repository.AddPrerequisitesAsync(skillPrerequisite);
+        await _repository.AddPrerequisitesAsync(skillPrerequisite);
+        return true;
+    }
+
+    public async Task<IEnumerable<SkillLog>> GetSkillLogsAsync(int skillId)
+    {
+        if(!await _repository.ExistsAsync(skillId)) return null;
+        return await _repository.GetLogsAsync(skillId);
+    }
+
+    public async Task<bool> CreateSkillLogAsync(SkillLog skillLog)
+    {
+        if (! await _repository.ExistsAsync(skillLog.SkillId))
+        {
+            return false;
+        }
+        await _repository.AddLogAsync(skillLog);
+        return true;
     }
 }
