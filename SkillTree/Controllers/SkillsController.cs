@@ -60,7 +60,7 @@ public class SkillsController : ControllerBase
     {
         if (await _skillService.CanStart(skillId) == false)
         {
-            return NotFound("Skill not found");
+            return BadRequest();
         }
 
         return Ok("Can Start");

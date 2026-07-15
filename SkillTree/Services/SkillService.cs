@@ -94,6 +94,8 @@ public class SkillService : ISkillService
     
     public async Task<bool> CanStart(int skillId)
     {
-        return await _repository.CanStart(skillId);
+        var skill = await _repository.GetSkillAsync(skillId);
+        if(skill == null) return false;
+        return skill.Prerequisites.All(sp => sp.Prerequisite.Status == SkillStatus.Completed);
     }
 }

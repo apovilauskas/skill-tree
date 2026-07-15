@@ -10,5 +10,5 @@ public interface ISkillRepository
     public Task<bool> ExistsAsync(int id);
     public Task<IEnumerable<SkillLog>> GetLogsAsync(int id);
     public Task AddLogAsync(SkillLog skillLog);
-    public Task<bool> CanStart(int skillId);
+    public Task<Skill?> GetSkillAsync(int skillId);
 }

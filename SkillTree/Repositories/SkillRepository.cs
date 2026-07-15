@@ -46,13 +46,11 @@ public class SkillRepository : ISkillRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> CanStart(int skillId)
+    public async Task<Skill?> GetSkillAsync(int skillId)
     {
-        var skill = await _context.Skills
+        return await _context.Skills
             .Include(skill => skill.Prerequisites)
             .ThenInclude(p => p.Prerequisite)
             .FirstOrDefaultAsync(s => s.Id == skillId);
-        if (skill == null) return false;
-        return skill.Prerequisites.All(sp => sp.Prerequisite.Status == SkillStatus.Completed);
     }
 }
