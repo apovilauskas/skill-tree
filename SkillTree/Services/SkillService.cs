@@ -62,21 +62,6 @@ public class SkillService : ISkillService
         await _repository.AddAsync(skill);
     }
 
-    public async Task<bool> CreatePrerequisitesAsync(int skillId, int prerequisiteId)
-    {
-        if (!await _repository.ExistsAsync(skillId) || !await _repository.ExistsAsync(prerequisiteId))
-        {
-            return false;
-        }
-        var skillPrerequisite = new SkillPrerequisite()
-        {
-            SkillId = skillId,
-            PrerequisiteId = prerequisiteId
-        };
-        await _repository.AddPrerequisitesAsync(skillPrerequisite);
-        return true;
-    }
-
     public async Task<IEnumerable<SkillLog>> GetSkillLogsAsync(int skillId)
     {
         if(!await _repository.ExistsAsync(skillId)) return null;
@@ -99,5 +84,34 @@ public class SkillService : ISkillService
         if(skill == null) return SkillStatus.NotFound;
         if (skill.Prerequisites.Any(sp => sp.Prerequisite.Status != SkillStatus.Completed)) return SkillStatus.Locked;
         return SkillStatus.InProgress;
+    }
+
+    public async Task<bool> CreatePrerequisitesAsync(int skillId, int prerequisiteId)
+    {
+        if (!await _repository.ExistsAsync(skillId) || !await _repository.ExistsAsync(prerequisiteId))
+        {
+            return false;
+        }
+
+        if (!await IsValidPrerequisite(skillId, prerequisiteId)) return false;
+        
+        var skillPrerequisite = new SkillPrerequisite()
+        {
+            SkillId = skillId,
+            PrerequisiteId = prerequisiteId
+        };
+        await _repository.AddPrerequisitesAsync(skillPrerequisite);
+        return true;
+    }
+    private async Task<bool> IsValidPrerequisite(int skillId, int prerequisiteId)
+    {
+        if (prerequisiteId == skillId) return false;
+        var prereq = await _repository.GetSkillAsync(prerequisiteId);
+        if(prereq == null || prereq.Prerequisites.Count < 1) return true;
+        foreach (SkillPrerequisite p in prereq.Prerequisites)
+        {
+            if (!await IsValidPrerequisite(skillId, p.PrerequisiteId)) return false;
+        }
+        return true;
     }
 }
