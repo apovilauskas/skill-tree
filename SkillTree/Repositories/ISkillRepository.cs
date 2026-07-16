@@ -5,6 +5,7 @@ namespace skill_tree.Repositories;
 public interface ISkillRepository
 {
     public Task<IEnumerable<Skill>> GetAllAsync();
+    public Task<List<Skill>> GetAllSkillsWithPrerequisitesAsync();
     public Task AddAsync(Skill skill);
     public Task AddPrerequisitesAsync(SkillPrerequisite skillPrerequisite);
     public Task<bool> ExistsAsync(int id);

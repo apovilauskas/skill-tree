@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using skill_tree.Entities;
+﻿using skill_tree.Entities;
 using skill_tree.Repositories;
 
 namespace skill_tree.Services;
@@ -93,7 +92,10 @@ public class SkillService : ISkillService
             return false;
         }
 
-        if (!await IsValidPrerequisite(skillId, prerequisiteId)) return false;
+        if (skillId == prerequisiteId) return false;
+
+        var prerequisiteGraph = await BuildGraphAsync();
+        if (!IsValidPrerequisite(skillId, prerequisiteId, prerequisiteGraph)) return false;
         
         var skillPrerequisite = new SkillPrerequisite()
         {
@@ -103,14 +105,30 @@ public class SkillService : ISkillService
         await _repository.AddPrerequisitesAsync(skillPrerequisite);
         return true;
     }
-    private async Task<bool> IsValidPrerequisite(int skillId, int prerequisiteId)
+
+    private async Task<Dictionary<int, List<int>>> BuildGraphAsync()
     {
-        if (prerequisiteId == skillId) return false;
-        var prereq = await _repository.GetSkillAsync(prerequisiteId);
-        if(prereq == null || prereq.Prerequisites.Count < 1) return true;
-        foreach (SkillPrerequisite p in prereq.Prerequisites)
+        var graph = new Dictionary<int, List<int>>();
+        var skills = await _repository.GetAllSkillsWithPrerequisitesAsync();
+        foreach (var skill in skills)
         {
-            if (!await IsValidPrerequisite(skillId, p.PrerequisiteId)) return false;
+            graph[skill.Id] = skill.Prerequisites
+                .Select(p => p.PrerequisiteId)
+                .ToList();
+        }
+        return graph;
+    }
+    
+    private bool IsValidPrerequisite(int skillId, int prerequisiteId, Dictionary<int, List<int>> graph)
+    {
+        if (!graph.TryGetValue(prerequisiteId, out var prereq))
+        {
+            return true;
+        }
+        if(prereq.Count < 1) return true;
+        foreach (int pId in prereq)
+        {
+            if (!IsValidPrerequisite(skillId, pId, graph)) return false;
         }
         return true;
     }

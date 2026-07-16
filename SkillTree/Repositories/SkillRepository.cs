@@ -17,6 +17,13 @@ public class SkillRepository : ISkillRepository
     {
         return await _context.Skills.ToListAsync();
     }
+    
+    public async Task<List<Skill>> GetAllSkillsWithPrerequisitesAsync()
+    {
+        return await _context.Skills
+            .Include(s => s.Prerequisites)
+            .ToListAsync();
+    }
 
     public async Task AddAsync(Skill skill)
     {
