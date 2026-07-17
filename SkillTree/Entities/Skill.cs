@@ -11,5 +11,5 @@ public class Skill
     public List<SkillPrerequisite> Prerequisites { get; set; } = new();
     public List<SkillLog> SkillLogs { get; set; } = new();
     public string Metric {get; set;} = string.Empty; //A label like "Matches", "Hours"
-    public int Target { get; set; } = 100;
+    public double Target { get; set; } = 100;
 }

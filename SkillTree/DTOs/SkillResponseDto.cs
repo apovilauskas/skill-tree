@@ -11,6 +11,6 @@ public class SkillResponseDto
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
     public string Metric {get; set;} = string.Empty;
-    public int Target { get; set; } = 100;
+    public double Target { get; set; } = 100;
     public List<PrerequisiteInfoResponseDto> PrerequisitesInfo { get; set; }
 }
