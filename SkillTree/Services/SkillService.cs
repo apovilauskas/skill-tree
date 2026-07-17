@@ -1,5 +1,7 @@
-﻿using skill_tree.Entities;
+﻿using skill_tree.DTOs;
+using skill_tree.Entities;
 using skill_tree.Repositories;
+using skill_tree.SkillMappingExtensions;
 
 namespace skill_tree.Services;
 
@@ -50,32 +52,6 @@ public class SkillService : ISkillService
         
         return Math.Min(100.0, v / t * c * 100.0); 
     }
-
-    public async Task<IEnumerable<Skill>> GetAllSkillsAsync()
-    {
-       return await _repository.GetAllAsync();
-    }
-
-    public async Task CreateSkillAsync(Skill skill)
-    {
-        await _repository.AddAsync(skill);
-    }
-
-    public async Task<IEnumerable<SkillLog>> GetSkillLogsAsync(int skillId)
-    {
-        if(!await _repository.ExistsAsync(skillId)) return null;
-        return await _repository.GetLogsAsync(skillId);
-    }
-
-    public async Task<bool> CreateSkillLogAsync(SkillLog skillLog)
-    {
-        if (! await _repository.ExistsAsync(skillLog.SkillId))
-        {
-            return false;
-        }
-        await _repository.AddLogAsync(skillLog);
-        return true;
-    }
     
     public async Task<SkillStatus> CanStart(int skillId)
     {
@@ -83,27 +59,6 @@ public class SkillService : ISkillService
         if(skill == null) return SkillStatus.NotFound;
         if (skill.Prerequisites.Any(sp => sp.Prerequisite.Status != SkillStatus.Completed)) return SkillStatus.Locked;
         return SkillStatus.InProgress;
-    }
-
-    public async Task<bool> CreatePrerequisiteAsync(int skillId, int prerequisiteId)
-    {
-        if (!await _repository.ExistsAsync(skillId) || !await _repository.ExistsAsync(prerequisiteId))
-        {
-            return false;
-        }
-
-        if (skillId == prerequisiteId) return false;
-
-        var prerequisiteGraph = await BuildGraphAsync();
-        if (!IsValidPrerequisite(skillId, prerequisiteId, prerequisiteGraph)) return false;
-        
-        var skillPrerequisite = new SkillPrerequisite()
-        {
-            SkillId = skillId,
-            PrerequisiteId = prerequisiteId
-        };
-        await _repository.AddPrerequisitesAsync(skillPrerequisite);
-        return true;
     }
 
     private async Task<Dictionary<int, List<int>>> BuildGraphAsync()
@@ -132,4 +87,59 @@ public class SkillService : ISkillService
         }
         return true;
     }
+
+    public async Task<IEnumerable<SkillResponseDto>> GetAllSkillsAsync()
+    {
+        var skills = await _repository.GetAllAsync();
+        return skills.Select(s => s.ToDto());
+    }
+
+    public async Task<SkillResponseDto> CreateSkillAsync(CreateSkillDto skill)
+    {
+        var entity = skill.ToEntity();
+        await _repository.AddAsync(entity);
+        return entity.ToDto();
+    }
+
+    public async Task<bool> CreatePrerequisiteAsync(int skillId, PrerequisiteIdDto prerequisiteId)
+    { 
+        var prereqId = prerequisiteId.Id;
+        if (!await _repository.ExistsAsync(skillId) || !await _repository.ExistsAsync(prereqId))
+        {
+            return false;
+        }
+
+        if (skillId == prereqId) return false;
+
+        var prerequisiteGraph = await BuildGraphAsync();
+        if (!IsValidPrerequisite(skillId, prereqId, prerequisiteGraph)) return false;
+        
+        var skillPrerequisite = new SkillPrerequisite()
+        {
+            SkillId = skillId,
+            PrerequisiteId = prereqId
+        };
+        await _repository.AddPrerequisitesAsync(skillPrerequisite);
+        return true;
+    }
+
+    public async Task<IEnumerable<SkillLogResponseDto>> GetSkillLogsAsync(int skillId)
+    {
+        if(!await _repository.ExistsAsync(skillId)) return null;
+        var a = await _repository.GetLogsAsync(skillId);
+        return a.Select(s => s.ToDto());
+    }
+
+    public async Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog)
+    {
+        var entity = skillLog.ToEntity();
+        entity.SkillId = skillId;
+        if (!await _repository.ExistsAsync(skillId))
+        {
+            return false;
+        }
+        await _repository.AddLogAsync(entity);
+        return true;
+    }
+    
 }
