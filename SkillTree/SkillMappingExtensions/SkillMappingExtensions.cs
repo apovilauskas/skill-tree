@@ -31,6 +31,7 @@ public static class SkillMappingExtensions
             Id =  entity.Id,
             CreatedAt = entity.CreatedAt,
             CompletedAt = entity.CompletedAt,
+            Progress = entity.Progress(),
             PrerequisitesInfo =  infos
         };
         return dto;

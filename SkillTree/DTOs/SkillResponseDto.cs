@@ -13,4 +13,5 @@ public class SkillResponseDto
     public string Metric {get; set;} = string.Empty;
     public double Target { get; set; } = 100;
     public List<PrerequisiteInfoResponseDto> PrerequisitesInfo { get; set; }
+    public double Progress { get; set; }
 }
