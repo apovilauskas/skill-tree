@@ -5,7 +5,6 @@ namespace skill_tree.Services;
 
 public interface ISkillService
 {
-    public double Progress(Skill skill);
     public Task<SkillStatus> CanStart(int skillId);
     public Task<IEnumerable<SkillResponseDto>> GetAllSkillsAsync();
     public Task<SkillResponseDto> CreateSkillAsync(CreateSkillDto skill);
