@@ -85,7 +85,7 @@ public class SkillService : ISkillService
         return SkillStatus.InProgress;
     }
 
-    public async Task<bool> CreatePrerequisitesAsync(int skillId, int prerequisiteId)
+    public async Task<bool> CreatePrerequisiteAsync(int skillId, int prerequisiteId)
     {
         if (!await _repository.ExistsAsync(skillId) || !await _repository.ExistsAsync(prerequisiteId))
         {

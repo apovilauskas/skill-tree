@@ -19,7 +19,7 @@ public static class SkillMappingExtensions
 
     public static SkillResponseDto ToDto(this Skill entity)
     {
-        List<PrerequisiteInfoResponseDto> infos = entity.Prerequisites.Select( s=> s.ToResponse()).ToList();
+        List<PrerequisiteInfoResponseDto> infos = entity.Prerequisites.Select(s=> s.ToResponse()).ToList();
         
         var dto = new SkillResponseDto()
         {

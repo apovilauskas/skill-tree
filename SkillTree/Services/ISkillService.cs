@@ -1,14 +1,14 @@
-﻿using skill_tree.Entities;
+﻿using skill_tree.DTOs;
+using skill_tree.Entities;
 
 namespace skill_tree.Services;
 
 public interface ISkillService
 {
-    public double Progress(Skill skill);
     public Task<SkillStatus> CanStart(int skillId);
-    public Task<IEnumerable<Skill>> GetAllSkillsAsync();
-    public Task CreateSkillAsync(Skill skill);
-    public Task<bool> CreatePrerequisitesAsync(int skillId, int prerequisiteId);
-    public Task<IEnumerable<SkillLog>> GetSkillLogsAsync(int skillId);
-    public Task<bool> CreateSkillLogAsync(SkillLog skillLog);
+    public Task<IEnumerable<SkillResponseDto>> GetAllSkillsAsync();
+    public Task<SkillResponseDto> CreateSkillAsync(CreateSkillDto skill);
+    public Task<bool> CreatePrerequisiteAsync(int skillId, PrerequisiteIdDto prerequisiteId);
+    public Task<IEnumerable<SkillLogResponseDto>> GetSkillLogsAsync(int skillId);
+    public Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog);
 }
