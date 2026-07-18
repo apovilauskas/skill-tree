@@ -2,7 +2,6 @@
 
 public enum SkillStatus
 {
-    NotFound,
     Locked,
     InProgress,
     Completed

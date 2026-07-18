@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using skill_tree.Common;
 using skill_tree.DTOs;
 using skill_tree.Entities;
 using skill_tree.Services;
@@ -33,7 +34,9 @@ public class SkillsController : ControllerBase
     [HttpPost("{skillId}/prerequisites")]
     public async Task<IActionResult> CreatePrerequisites(int skillId, [FromBody] PrerequisiteIdDto prerequisiteId)
     {
-        if(!await _skillService.CreatePrerequisiteAsync(skillId, prerequisiteId)) return NotFound("Skill not found");
+        var result =  await _skillService.CreatePrerequisiteAsync(skillId, prerequisiteId);
+        if(result == CreatePrerequisiteResult.SkillNotFound) return NotFound("Skill not found");
+        if(result == CreatePrerequisiteResult.CircularDependencyDetected) return BadRequest("Circular dependency detected");
         return Ok("Prerequisite added");
     }
 
@@ -48,7 +51,7 @@ public class SkillsController : ControllerBase
     [HttpPost("{skillId}/logs")]
     public async Task<IActionResult> CreateSkillLog(int skillId, [FromBody] CreateSkillLogDto skillLog)
     {
-        if (await _skillService.CreateSkillLogAsync(skillId, skillLog) == false)
+        if (!await _skillService.CreateSkillLogAsync(skillId, skillLog))
         {
             return NotFound("Skill not found");
         }
@@ -59,8 +62,8 @@ public class SkillsController : ControllerBase
     public async Task<IActionResult> CanStart(int skillId)
     {
         var response = await _skillService.CanStart(skillId);
-        if(response == SkillStatus.NotFound) return NotFound("Skill not found");
-        if(response == SkillStatus.Locked) return BadRequest("Skill is locked");
+        if(response == CanStartResult.SkillNotFound) return NotFound("Skill not found");
+        if(response == CanStartResult.LockedByPrerequisites) return BadRequest("Skill is locked");
         return Ok("Can Start");
     }
 }

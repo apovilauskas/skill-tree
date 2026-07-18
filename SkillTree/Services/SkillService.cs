@@ -1,4 +1,5 @@
-﻿using skill_tree.DTOs;
+﻿using skill_tree.Common;
+using skill_tree.DTOs;
 using skill_tree.Entities;
 using skill_tree.Repositories;
 using skill_tree.SkillMappingExtensions;
@@ -14,12 +15,12 @@ public class SkillService : ISkillService
         _repository = repository;
     }
     
-    public async Task<SkillStatus> CanStart(int skillId)
+    public async Task<CanStartResult> CanStart(int skillId)
     {
         var skill = await _repository.GetSkillAsync(skillId);
-        if(skill == null) return SkillStatus.NotFound;
-        if (skill.Prerequisites.Any(sp => sp.Prerequisite.Status != SkillStatus.Completed)) return SkillStatus.Locked;
-        return SkillStatus.InProgress;
+        if(skill == null) return CanStartResult.SkillNotFound;
+        if (skill.Prerequisites.Any(sp => sp.Prerequisite.Status != SkillStatus.Completed)) return CanStartResult.LockedByPrerequisites;
+        return CanStartResult.Available;
     }
 
     private async Task<Dictionary<int, List<int>>> BuildGraphAsync()
@@ -63,18 +64,18 @@ public class SkillService : ISkillService
         return entity.ToDto();
     }
 
-    public async Task<bool> CreatePrerequisiteAsync(int skillId, PrerequisiteIdDto prerequisiteId)
+    public async Task<CreatePrerequisiteResult> CreatePrerequisiteAsync(int skillId, PrerequisiteIdDto prerequisiteId)
     { 
         var prereqId = prerequisiteId.Id;
         if (!await _repository.ExistsAsync(skillId) || !await _repository.ExistsAsync(prereqId))
         {
-            return false;
+            return CreatePrerequisiteResult.SkillNotFound;
         }
 
-        if (skillId == prereqId) return false;
+        if (skillId == prereqId) return CreatePrerequisiteResult.CircularDependencyDetected;
 
         var prerequisiteGraph = await BuildGraphAsync();
-        if (!IsValidPrerequisite(skillId, prereqId, prerequisiteGraph)) return false;
+        if (!IsValidPrerequisite(skillId, prereqId, prerequisiteGraph)) return CreatePrerequisiteResult.CircularDependencyDetected;
         
         var skillPrerequisite = new SkillPrerequisite()
         {
@@ -82,7 +83,7 @@ public class SkillService : ISkillService
             PrerequisiteId = prereqId
         };
         await _repository.AddPrerequisitesAsync(skillPrerequisite);
-        return true;
+        return CreatePrerequisiteResult.Success;
     }
 
     public async Task<IEnumerable<SkillLogResponseDto>> GetSkillLogsAsync(int skillId)
