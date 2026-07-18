@@ -44,6 +44,7 @@ public class SkillService : ISkillService
         if(prereq.Count < 1) return true;
         foreach (int pId in prereq)
         {
+            if (pId == skillId) return false;
             if (!IsValidPrerequisite(skillId, pId, graph)) return false;
         }
         return true;
