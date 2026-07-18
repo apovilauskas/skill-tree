@@ -47,7 +47,7 @@ public class SkillServiceTests
     public async Task CanStart_WithNonExistingSkill_ShouldReturnNotFound()
     {
         _repository.Setup(r => r.GetSkillAsync(-5)).ReturnsAsync((Skill?)null);
-        var result = await _service.CanStart(-5);
+        var result = await _service.CanStartAsync(-5);
         Assert.Equal(CanStartResult.SkillNotFound, result);
     }
 
@@ -62,7 +62,7 @@ public class SkillServiceTests
 
         _repository.Setup(r => r.GetSkillAsync(10)).ReturnsAsync(skill);
 
-        var result = await _service.CanStart(10);
+        var result = await _service.CanStartAsync(10);
         Assert.Equal(CanStartResult.LockedByPrerequisites, result);
     }
 
@@ -77,7 +77,7 @@ public class SkillServiceTests
 
         _repository.Setup(r => r.GetSkillAsync(20)).ReturnsAsync(skill);
 
-        var result = await _service.CanStart(20);
+        var result = await _service.CanStartAsync(20);
         Assert.Equal(CanStartResult.Available, result);
     }
 

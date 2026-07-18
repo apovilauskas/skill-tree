@@ -70,4 +70,18 @@ public static class SkillMappingExtensions
         };
         return dto;
     }
+    
+    public static UnlockedSkillResponseDto ToUnlockedDto(this Skill entity)
+    {
+        var dto = new UnlockedSkillResponseDto()
+        {
+            Name = entity.Name,
+            Description = entity.Description,
+            Metric = entity.Metric,
+            Target = entity.Target,
+            Id =  entity.Id,
+            Progress = entity.Progress(),
+        };
+        return dto;
+    }
 }

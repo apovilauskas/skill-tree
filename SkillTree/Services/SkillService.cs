@@ -15,7 +15,7 @@ public class SkillService : ISkillService
         _repository = repository;
     }
     
-    public async Task<CanStartResult> CanStart(int skillId)
+    public async Task<CanStartResult> CanStartAsync(int skillId)
     {
         var skill = await _repository.GetSkillAsync(skillId);
         if(skill == null) return CanStartResult.SkillNotFound;
@@ -104,5 +104,19 @@ public class SkillService : ISkillService
         await _repository.AddLogAsync(entity);
         return true;
     }
-    
+
+    public async Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync()
+    {
+        var skills = await _repository.GetAllSkillsWithPrerequisitesAsync();
+        var available = skills.Where(r => r.Status == SkillStatus.InProgress || r.Status == SkillStatus.Locked);
+        var result = new List<UnlockedSkillResponseDto>();
+        foreach (Skill skill in available)
+        {
+            if (skill.Prerequisites.All(r => r.Prerequisite.Status == SkillStatus.Completed))
+            {
+                result.Add(skill.ToUnlockedDto());
+            }
+        }
+        return result;
+    }
 }

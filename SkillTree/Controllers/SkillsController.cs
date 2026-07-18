@@ -59,11 +59,18 @@ public class SkillsController : ControllerBase
     }
 
     [HttpGet("canStart/{skillId}")]
-    public async Task<IActionResult> CanStart(int skillId)
+    public async Task<IActionResult> CanStartAsync(int skillId)
     {
-        var response = await _skillService.CanStart(skillId);
+        var response = await _skillService.CanStartAsync(skillId);
         if(response == CanStartResult.SkillNotFound) return NotFound("Skill not found");
         if(response == CanStartResult.LockedByPrerequisites) return BadRequest("Skill is locked");
         return Ok("Can Start");
+    }
+
+    [HttpGet("unlocked")] //in progress, but not completed skills
+    public async Task<IActionResult> Unlocked()
+    {
+        var response = await _skillService.GetUnlockedSkillsAsync();
+        return Ok(response);
     }
 }
