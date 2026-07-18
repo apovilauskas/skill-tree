@@ -122,7 +122,7 @@ public class SkillServiceTests
     }
 
     [Fact]
-    public async Task CreatePrerequisiteAsync_WithSameSkillInThirdLayer_ShouldReturnFalse()
+    public async Task CreatePrerequisiteAsync_WithSameSkillInThirdLayer_ReturnsFalse()
     {
         // 10 -> 20 -> 30 -> 10
         var skill10 = CreateSkill(10);
@@ -146,7 +146,7 @@ public class SkillServiceTests
     }
 
     [Fact]
-    public async Task CreatePrerequisiteAsync_WithUniquePrerequisites_ShouldReturnSuccess()
+    public async Task CreatePrerequisiteAsync_UniquePrerequisites_ReturnsSuccess()
     {
         var skill10 = CreateSkill(10);
         var skill50 = CreateSkill(50);
@@ -158,5 +158,40 @@ public class SkillServiceTests
         var dto = CreatePrerequisiteDto(50);
         var result = await _service.CreatePrerequisiteAsync(10, dto);
         Assert.Equal(CreatePrerequisiteResult.Success, result);
+    }
+    
+    [Fact]
+    public async Task GetUnlockedSkillsAsync_SkillLockedButPrerequisitesComplete_IsIncluded()
+    {
+        var prereqSkill = CreateSkill(1, SkillStatus.Completed);
+        var skill = CreateSkill(2, SkillStatus.Locked, new List<SkillPrerequisite>
+        {
+            CreatePrerequisite(2, 1, prereqSkill)
+        });
+
+        _repository.Setup(r => r.GetAllSkillsWithPrerequisitesAsync())
+            .ReturnsAsync(new List<Skill> { prereqSkill, skill });
+
+        var result = await _service.GetUnlockedSkillsAsync();
+
+        Assert.Single(result);
+        Assert.Equal(2, result.First().Id); 
+    } 
+
+    [Fact]
+    public async Task GetUnlockedSkillsAsync_SkillLockedWithIncompletePrerequisite_IsExcluded()
+    {
+        var incompletePrereq = CreateSkill(5, SkillStatus.Locked);
+        var lockedSkill = CreateSkill(6, SkillStatus.Locked, new List<SkillPrerequisite>
+        {
+            CreatePrerequisite(6, 5, incompletePrereq)
+        });
+
+        _repository.Setup(r => r.GetAllSkillsWithPrerequisitesAsync()).ReturnsAsync(new List<Skill> { incompletePrereq, lockedSkill });
+
+        var result = await _service.GetUnlockedSkillsAsync();
+        
+        Assert.DoesNotContain(result, r => r.Id == 6); 
+        Assert.Contains(result, r => r.Id == 5);
     }
 }
