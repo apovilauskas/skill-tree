@@ -20,7 +20,7 @@ public class SkillRepository : ISkillRepository
         return await _context.Skills.ToListAsync();
     }
     
-    public async Task<List<Skill>> GetAllSkillsWithPrerequisitesAsync()
+    public async Task<IEnumerable<Skill>> GetAllSkillsWithPrerequisitesAsync()
     {
         return await _context.Skills
             .Include(s => s.Prerequisites)
@@ -69,5 +69,31 @@ public class SkillRepository : ISkillRepository
             .Where(d => d.Status == SkillStatus.Completed)
             .OrderByDescending(s => s.CompletedAt)
             .Take(10).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Skill>> GetUnlockedSkillsAsync()
+    {
+        return await _context.Skills
+            .Where(s => s.Status == SkillStatus.InProgress || s.Status == SkillStatus.Locked)
+            .Where(s => s.Prerequisites.All(p => p.Prerequisite.Status == SkillStatus.Completed))
+            .ToListAsync();
+    }
+    
+    public async Task<Dictionary<int, List<int>>> GetSkillPrerequisiteGraphAsync()
+    {
+        var data = await _context.Skills
+            .Select(s => new 
+            {
+                SkillId = s.Id,
+                PrerequisiteIds = s.Prerequisites
+                    .Select(p => p.PrerequisiteId)
+                    .ToList()
+            })
+            .ToListAsync();
+
+        return data.ToDictionary(
+            x => x.SkillId,
+            x => x.PrerequisiteIds
+        );
     }
 }

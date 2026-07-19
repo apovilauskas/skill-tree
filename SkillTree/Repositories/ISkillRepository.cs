@@ -6,7 +6,7 @@ namespace skill_tree.Repositories;
 public interface ISkillRepository
 {
     public Task<IEnumerable<Skill>> GetAllAsync();
-    public Task<List<Skill>> GetAllSkillsWithPrerequisitesAsync();
+    public Task<IEnumerable<Skill>> GetAllSkillsWithPrerequisitesAsync();
     public Task AddAsync(Skill skill);
     public Task AddPrerequisitesAsync(SkillPrerequisite skillPrerequisite);
     public Task<bool> ExistsAsync(int id);
@@ -14,4 +14,6 @@ public interface ISkillRepository
     public Task AddLogAsync(SkillLog skillLog);
     public Task<Skill?> GetSkillAsync(int skillId);
     public Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync();
+    public Task<IEnumerable<Skill>> GetUnlockedSkillsAsync();
+    Task<Dictionary<int, List<int>>> GetSkillPrerequisiteGraphAsync();
 }

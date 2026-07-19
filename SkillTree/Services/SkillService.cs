@@ -22,17 +22,10 @@ public class SkillService : ISkillService
         if (skill.Prerequisites.Any(sp => sp.Prerequisite.Status != SkillStatus.Completed)) return CanStartResult.LockedByPrerequisites;
         return CanStartResult.Available;
     }
-
+    
     private async Task<Dictionary<int, List<int>>> BuildGraphAsync()
     {
-        var skills = await _repository.GetAllSkillsWithPrerequisitesAsync();
-        var graph = skills.ToDictionary(
-            skill => skill.Id,
-            skill => skill.Prerequisites
-                .Select(p => p.PrerequisiteId)
-                .ToList()
-            );
-        return graph;
+        return await _repository.GetSkillPrerequisiteGraphAsync();
     }
     
     private bool IsValidPrerequisite(int skillId, int prerequisiteId, Dictionary<int, List<int>> graph)
@@ -104,18 +97,15 @@ public class SkillService : ISkillService
         return true;
     }
 
-    public async Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync()
-    {
-        var skills = await _repository.GetAllSkillsWithPrerequisitesAsync();
-        return skills
-            .Where(s => s.Status == SkillStatus.InProgress || s.Status == SkillStatus.Locked)
-            .Where(s=> s.Prerequisites.All(s => s.Prerequisite.Status == SkillStatus.Completed))
-            .Select(s => s.ToUnlockedDto());
-    }
-
     public async Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync()
     {
         var skills = await _repository.GetCompletedSortedRecentSkillsAsync();
         return skills.Select(s => s.ToCompletedDto());
+    }
+    
+    public async Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync()
+    {
+        var skills = await _repository.GetUnlockedSkillsAsync();
+        return skills.Select(s => s.ToUnlockedDto());
     }
 }
