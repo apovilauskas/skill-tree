@@ -25,14 +25,13 @@ public class SkillService : ISkillService
 
     private async Task<Dictionary<int, List<int>>> BuildGraphAsync()
     {
-        var graph = new Dictionary<int, List<int>>();
         var skills = await _repository.GetAllSkillsWithPrerequisitesAsync();
-        foreach (var skill in skills)
-        {
-            graph[skill.Id] = skill.Prerequisites
+        var graph = skills.ToDictionary(
+            skill => skill.Id,
+            skill => skill.Prerequisites
                 .Select(p => p.PrerequisiteId)
-                .ToList();
-        }
+                .ToList()
+            );
         return graph;
     }
     
@@ -89,8 +88,8 @@ public class SkillService : ISkillService
     public async Task<IEnumerable<SkillLogResponseDto>> GetSkillLogsAsync(int skillId)
     {
         if(!await _repository.ExistsAsync(skillId)) return null;
-        var a = await _repository.GetLogsAsync(skillId);
-        return a.Select(s => s.ToDto());
+        var sk = await _repository.GetLogsAsync(skillId);
+        return sk.Select(s => s.ToDto());
     }
 
     public async Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog)
@@ -108,21 +107,15 @@ public class SkillService : ISkillService
     public async Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync()
     {
         var skills = await _repository.GetAllSkillsWithPrerequisitesAsync();
-        var available = skills.Where(r => r.Status == SkillStatus.InProgress || r.Status == SkillStatus.Locked);
-        var result = new List<UnlockedSkillResponseDto>();
-        foreach (Skill skill in available)
-        {
-            if (skill.Prerequisites.All(r => r.Prerequisite.Status == SkillStatus.Completed))
-            {
-                result.Add(skill.ToUnlockedDto());
-            }
-        }
-        return result;
+        return skills
+            .Where(s => s.Status == SkillStatus.InProgress || s.Status == SkillStatus.Locked)
+            .Where(s=> s.Prerequisites.All(s => s.Prerequisite.Status == SkillStatus.Completed))
+            .Select(s => s.ToUnlockedDto());
     }
 
     public async Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync()
     {
         var skills = await _repository.GetCompletedSortedRecentSkillsAsync();
-        return skills.Select(r => r.ToCompletedDto());
+        return skills.Select(s => s.ToCompletedDto());
     }
 }
