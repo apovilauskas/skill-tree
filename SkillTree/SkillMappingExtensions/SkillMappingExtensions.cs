@@ -84,4 +84,18 @@ public static class SkillMappingExtensions
         };
         return dto;
     }
+    
+    public static CompletedSkillResponseDto ToCompletedDto(this Skill entity)
+    {
+        var dto = new CompletedSkillResponseDto()
+        {
+            Name = entity.Name,
+            Description = entity.Description,
+            Metric = entity.Metric,
+            Target = entity.Target,
+            Id =  entity.Id,
+            CompletedAt = entity.CompletedAt ??  DateTime.UtcNow,
+        };
+        return dto;
+    }
 }

@@ -67,10 +67,17 @@ public class SkillsController : ControllerBase
         return Ok("Can Start");
     }
 
-    [HttpGet("unlocked")] //in progress, but not completed skills
+    [HttpGet("unlocked")]
     public async Task<IActionResult> Unlocked()
     {
         var response = await _skillService.GetUnlockedSkillsAsync();
+        return Ok(response);
+    }
+
+    [HttpGet("completed")]
+    public async Task<IActionResult> Completed()
+    {
+        var response = await _skillService.GetCompletedSkillsAsync();
         return Ok(response);
     }
 }

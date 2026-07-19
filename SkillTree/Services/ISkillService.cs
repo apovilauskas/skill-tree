@@ -12,4 +12,5 @@ public interface ISkillService
     public Task<IEnumerable<SkillLogResponseDto>> GetSkillLogsAsync(int skillId);
     public Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog);
     public Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync();
+    public Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync();
 }
