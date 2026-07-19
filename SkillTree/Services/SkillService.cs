@@ -122,13 +122,7 @@ public class SkillService : ISkillService
 
     public async Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync()
     {
-        var skills = await _repository.GetAllSkillsWithPrerequisitesAsync();
-        var available = skills.Where(r => r.Status == SkillStatus.Completed);
-        var result = new List<CompletedSkillResponseDto>();
-        foreach (Skill skill in available)
-        {
-            result.Add(skill.ToCompletedDto());
-        }
-        return result;
+        var skills = await _repository.GetCompletedSortedRecentSkillsAsync();
+        return skills.Select(r => r.ToCompletedDto());
     }
 }

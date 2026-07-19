@@ -1,4 +1,5 @@
-﻿using skill_tree.Entities;
+﻿using skill_tree.DTOs;
+using skill_tree.Entities;
 
 namespace skill_tree.Repositories;
 
@@ -12,4 +13,5 @@ public interface ISkillRepository
     public Task<IEnumerable<SkillLog>> GetLogsAsync(int id);
     public Task AddLogAsync(SkillLog skillLog);
     public Task<Skill?> GetSkillAsync(int skillId);
+    public Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync();
 }

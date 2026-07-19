@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using skill_tree.Data;
+using skill_tree.DTOs;
 using skill_tree.Entities;
+using skill_tree.SkillMappingExtensions;
 
 namespace skill_tree.Repositories;
 
@@ -59,5 +61,13 @@ public class SkillRepository : ISkillRepository
             .Include(skill => skill.Prerequisites)
             .ThenInclude(p => p.Prerequisite)
             .FirstOrDefaultAsync(s => s.Id == skillId);
+    }
+
+    public async Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync()
+    {
+        return await _context.Skills
+            .Where(d => d.Status == SkillStatus.Completed)
+            .OrderByDescending(s => s.CompletedAt)
+            .Take(10).ToListAsync();
     }
 }
