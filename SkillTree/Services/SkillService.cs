@@ -115,7 +115,8 @@ public class SkillService : ISkillService
 
         return skills
             .OrderByDescending(Formula)
-            .Select(s => s.Skill.ToUnlockedDto());
+            .Select(s => s.Skill.ToUnlockedDto())
+            .Take(3);
     }
 
     private double Formula(SkillRecommendation skill)

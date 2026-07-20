@@ -58,6 +58,8 @@ Content-Type: application/json
 ### 9. Get Unlocked Skills
 GET {{baseUrl}}/api/skills/unlocked
 
-
 ### 10. Get Completed Skills
 GET {{baseUrl}}/api/skills/completed
+
+### 11. Get Recommended Skills (Top Priorities)
+GET {{baseUrl}}/api/skills/recommended

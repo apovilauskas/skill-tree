@@ -3,5 +3,6 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::D2FA6A65-C3B6-4002-AF77-79BD901D9305::net10.0::skill_tree.tests.SkillTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::D2FA6A65-C3B6-4002-AF77-79BD901D9305::net10.0::skill_tree.tests.SkillServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::D2FA6A65-C3B6-4002-AF77-79BD901D9305::net10.0::skill_tree.Tests.SkillServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
