@@ -52,4 +52,19 @@ public class Skill
         return Math.Min(100.0, v / t * c * 100.0); 
     }
     
+    public void RefreshStatus()
+    {
+        var progress = Progress();
+
+        if (progress >= 100 && Status != SkillStatus.Completed)
+        {
+            Status = SkillStatus.Completed;
+            CompletedAt = DateTime.UtcNow;
+        }
+        else if (progress > 0 && Status == SkillStatus.Locked)
+        {
+            Status = SkillStatus.InProgress;
+        }
+    }
+    
 }

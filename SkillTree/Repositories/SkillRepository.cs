@@ -55,12 +55,13 @@ public class SkillRepository : ISkillRepository
         _context.SkillLogs.Add(skillLog);
         await _context.SaveChangesAsync();
     }
-
+    
     public async Task<Skill?> GetSkillAsync(int skillId)
     {
         return await _context.Skills
             .Include(skill => skill.Prerequisites)
             .ThenInclude(p => p.Prerequisite)
+            .Include(skill => skill.SkillLogs)
             .FirstOrDefaultAsync(s => s.Id == skillId);
     }
 
@@ -110,5 +111,16 @@ public class SkillRepository : ISkillRepository
                     UnlockCount = _context.Prerequisites.Count(sp => sp.PrerequisiteId == s.Id),
                 })
             .ToListAsync();
+    }
+    
+    public async Task UpdateAsync(Skill skill)
+    {
+        _context.Skills.Update(skill);
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

@@ -65,7 +65,6 @@ public class SkillService : ISkillService
         }
 
         if (skillId == prereqId) return CreatePrerequisiteResult.CircularDependencyDetected;
-
         var prerequisiteGraph = await BuildGraphAsync();
         if (!IsValidPrerequisite(skillId, prereqId, prerequisiteGraph)) return CreatePrerequisiteResult.CircularDependencyDetected;
         
@@ -84,16 +83,16 @@ public class SkillService : ISkillService
         var sk = await _repository.GetLogsAsync(skillId);
         return sk.Select(s => s.ToDto());
     }
-
+    
     public async Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog)
     {
+        var skill = await _repository.GetSkillAsync(skillId);
+        if (skill == null) return false;
         var entity = skillLog.ToEntity();
         entity.SkillId = skillId;
-        if (!await _repository.ExistsAsync(skillId))
-        {
-            return false;
-        }
-        await _repository.AddLogAsync(entity);
+        skill.SkillLogs.Add(entity);
+        skill.RefreshStatus();
+        await _repository.SaveChangesAsync();
         return true;
     }
 
