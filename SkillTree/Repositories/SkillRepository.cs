@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using skill_tree.Common;
 using skill_tree.Data;
 using skill_tree.DTOs;
 using skill_tree.Entities;
@@ -95,5 +96,19 @@ public class SkillRepository : ISkillRepository
             x => x.SkillId,
             x => x.PrerequisiteIds
         );
+    }
+
+    public async Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills()
+    {
+        return await _context.Skills
+            .Where(s => s.Status == SkillStatus.InProgress || s.Status == SkillStatus.Locked)
+            .Where(s => s.Prerequisites.All(p => p.Prerequisite.Status == SkillStatus.Completed))
+            .Select(s => new SkillRecommendation
+                {
+                    LastLog = s.SkillLogs.Max(log => (DateTime?)log.Date),
+                    Skill = s,
+                    UnlockCount = _context.Prerequisites.Count(sp => sp.PrerequisiteId == s.Id),
+                })
+            .ToListAsync();
     }
 }

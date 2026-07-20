@@ -1,4 +1,5 @@
-﻿using skill_tree.DTOs;
+﻿using skill_tree.Common;
+using skill_tree.DTOs;
 using skill_tree.Entities;
 
 namespace skill_tree.Repositories;
@@ -15,5 +16,6 @@ public interface ISkillRepository
     public Task<Skill?> GetSkillAsync(int skillId);
     public Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync();
     public Task<IEnumerable<Skill>> GetUnlockedSkillsAsync();
-    Task<Dictionary<int, List<int>>> GetSkillPrerequisiteGraphAsync();
+    public Task<Dictionary<int, List<int>>> GetSkillPrerequisiteGraphAsync();
+    public Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills();
 }

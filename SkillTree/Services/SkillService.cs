@@ -108,4 +108,30 @@ public class SkillService : ISkillService
         var skills = await _repository.GetUnlockedSkillsAsync();
         return skills.Select(s => s.ToUnlockedDto());
     }
+
+    public async Task<IEnumerable<UnlockedSkillResponseDto>> GetRecommendations()
+    {
+        var skills = await _repository.GetRecommendedSkills();
+
+        return skills
+            .OrderByDescending(Formula)
+            .Select(s => s.Skill.ToUnlockedDto());
+    }
+
+    private double Formula(SkillRecommendation skill)
+    {
+        double total = 0;
+        
+        // up to 15 pts for each inactive day
+        if (skill.LastLog == null) total += 15;
+        else{
+            var days = (DateTime.UtcNow - skill.LastLog.Value).TotalDays;
+            total += Math.Min(days, 15);
+        }
+        
+        // +10 for each skill this prerequisite unlocks
+        total += skill.UnlockCount * 10;
+        
+        return total;
+    }
 }
