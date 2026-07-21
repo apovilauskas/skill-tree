@@ -4,7 +4,7 @@ A backend API for tracking personal skill development as a **prerequisite-gated 
 
 ## Description
 
-Skill Tree is a .NET Core Web API that models learning and practice as a directed graph of skills. Each skill has a target (e.g. "50 matches" or "20 hours"), and users log sessions against it over time. Progress isn't a simple ratio — it factors in consistency and streaks, rewarding steady practice over last-minute cramming. Skills can require other skills as prerequisites, and the API enforces a valid, acyclic dependency graph before any relationship is created.
+Skill Tree is an ASP.NET Core Web API that models learning and practice as a directed graph of skills. Each skill has a target (e.g. "50 matches" or "20 hours"), and users log sessions against it over time. Progress isn't a simple ratio — it factors in consistency and streaks, rewarding steady practice over last-minute cramming. Skills can require other skills as prerequisites, and the API enforces a valid, acyclic dependency graph before any relationship is created.
 
 The project was built to practice a clean, layered .NET architecture: Controllers → Services → Repositories, backed by EF Core and PostgreSQL, with manual DTO mapping and unit tests around the core business logic.
 
@@ -72,16 +72,8 @@ Four pieces of this project were worth designing carefully rather than reaching 
 
 Two EF Core relationships do the heavy lifting, and one of them is self-referencing:
 
-- **`Skill` → `SkillLog` (one-to-many)** — a skill has many logs, each log belongs to exactly one skill. This is the collection `Progress()` sums over.
-- **`Skill` → `SkillPrerequisite` (self-referencing many-to-many)** — `SkillPrerequisite` is a join entity connecting `Skill` to itself: `SkillId` is the skill being gated, `PrerequisiteId` is the skill gating it. A skill can have many prerequisites, *and* the same skill can be listed as a prerequisite on many other skills — one entity, walked in two directions depending on which side you query from.
-
-That reverse direction — "how many skills does this one unlock?" — is exactly what powers the recommendation scoring:
-
-```
-UnlockCount = _context.Prerequisites.Count(sp => sp.PrerequisiteId == s.Id),
-```
-
-Rather than relying on an inverse navigation collection, this counts join-table rows where the current skill appears as *someone else's* prerequisite — a direct query against the relationship rather than loading every dependent skill just to count them.
+- **`Skill` → `SkillLog` (one-to-many)** — a skill has many logs, each log belongs to exactly one skill.
+- **`Skill` → `SkillPrerequisite` (self-referencing many-to-many)** — `SkillPrerequisite` is a join entity connecting `Skill` to itself: `SkillId` is the skill being gated, `PrerequisiteId` is the skill gating it. A skill can have many prerequisites, *and* the same skill can be listed as a prerequisite on many other skills.
 
 ### 2. Progress Calculation
 
@@ -105,7 +97,7 @@ c = 0.8 + 0.4 * (0.5 * (d1 / d2) + 0.5 * min(1, s / 30))
 - **s** — current streak: consecutive days practiced, counted backward from today (or yesterday, so a single missed day doesn't immediately zero it out)
 
 The multiplier **c** ranges from **0.8 to 1.2**. This means:
-- Sporadic, inconsistent practice caps your effective progress at 80% of the raw ratio.
+- Inconsistent practice caps your effective progress at 80% of the raw ratio.
 - Practicing most days *and* holding a long streak (30+ days) can boost effective progress up to 20% above the raw ratio.
 
 The result is a progress bar that reflects *how* you practiced, not just how much — two people who log the same total amount can end up with meaningfully different progress if one was consistent and the other wasn't.
@@ -142,12 +134,12 @@ score = min(inactiveDays, 15) + (unlockCount * 10)
 - **Inactivity** — days since the skill was last logged (capped at 15 points, so an abandoned skill doesn't dominate forever)
 - **Unlock impact** — +10 points for every other skill that has this one as a prerequisite
 
-This balances two competing signals: skills you've been neglecting, and skills that are "keys" to unlocking more of the tree. A skill that's both stale *and* a gateway to several others will naturally rise to the top.
+This balances two competing signals: skills you've been neglecting, and skills that are "keys" to unlocking more of the tree.
 
 ## Tech Stack
 
 **Technologies**
-- .NET Core Web API (Controllers)
+- ASP.NET Core Web API (Controllers)
 - Entity Framework Core
 - PostgreSQL
 - xUnit
