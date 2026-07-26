@@ -32,7 +32,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpPost("{skillId}/prerequisites")]
-    public async Task<IActionResult> CreatePrerequisites(int skillId, [FromBody] PrerequisiteIdDto prerequisiteId)
+    public async Task<IActionResult> CreatePrerequisite(int skillId, [FromBody] PrerequisiteIdDto prerequisiteId)
     {
         var result =  await _skillService.CreatePrerequisiteAsync(skillId, prerequisiteId);
         if(result == CreatePrerequisiteResult.SkillNotFound) return NotFound("Skill not found");

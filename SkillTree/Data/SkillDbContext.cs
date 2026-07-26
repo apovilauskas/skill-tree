@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using skill_tree.Entities;
 
 namespace skill_tree.Data;
@@ -13,6 +14,7 @@ public class SkillDbContext : DbContext
     public DbSet<Skill> Skills  => Set<Skill>();
     public DbSet<SkillPrerequisite> Prerequisites => Set<SkillPrerequisite>();
     public DbSet<SkillLog> SkillLogs => Set<SkillLog>();
+    public DbSet<UserSkillProgress> UserSkillProgresses => Set<UserSkillProgress>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,5 +36,17 @@ public class SkillDbContext : DbContext
             WithMany(s => s.SkillLogs).
             HasForeignKey(f => f.SkillId).
             OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserSkillProgress>().
+            
+            HasOne(s => s.Skill).
+            WithMany().
+            HasForeignKey(f => f.SkillId).
+            OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<UserSkillProgress>().
+            HasIndex(s => new {s.UserId, s.SkillId}).
+            IsUnique();
+        
     }
 }
