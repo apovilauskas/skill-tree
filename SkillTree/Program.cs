@@ -13,6 +13,8 @@ builder.Services.AddDbContext<SkillDbContext>(options =>
 
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ICurrentUserService, HeaderCurrentUserService>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
