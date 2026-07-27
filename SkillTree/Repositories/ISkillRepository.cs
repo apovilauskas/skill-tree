@@ -11,14 +11,14 @@ public interface ISkillRepository
     public Task AddAsync(Skill skill);
     public Task AddPrerequisitesAsync(SkillPrerequisite skillPrerequisite);
     public Task<bool> ExistsAsync(int id);
-    public Task<IEnumerable<SkillLog>> GetLogsAsync(int id);
-    public Task AddLogAsync(SkillLog skillLog);
+    public Task<IEnumerable<SkillLog>> GetLogsAsync(int logId, string userId);
+    public Task AddLogAsync(SkillLog skillLog, string userId);
     public Task<Skill?> GetSkillAsync(int skillId);
-    public Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync();
-    public Task<IEnumerable<Skill>> GetUnlockedSkillsAsync();
+    public Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync(string userId);
+    public Task<IEnumerable<Skill>> GetUnlockedSkillsAsync(string userId);
     public Task<Dictionary<int, List<int>>> GetSkillPrerequisiteGraphAsync();
-    public Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills();
-    public Task UpdateAsync(Skill skill);
+    public Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills(string userId);
+    public Task UpdateAsync(Skill skill, string userId);
     public Task SaveChangesAsync();
-
+    
 }
