@@ -18,7 +18,7 @@ public interface ISkillRepository
     public Task<IEnumerable<Skill>> GetUnlockedSkillsAsync(string userId);
     public Task<Dictionary<int, List<int>>> GetSkillPrerequisiteGraphAsync();
     public Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills(string userId);
-    public Task UpdateAsync(Skill skill, string userId);
+    public Task UpdateAsync(int skillId, string userId, SkillStatus newStatus);
     public Task SaveChangesAsync();
     
 }

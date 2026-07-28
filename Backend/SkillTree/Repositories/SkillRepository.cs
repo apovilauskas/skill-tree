@@ -68,10 +68,13 @@ public class SkillRepository : ISkillRepository
 
     public async Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync(string userId)
     {
-        return await _context.Skills
-            .Where(d => d.Status == SkillStatus.Completed)
+        return await _context.UserSkillProgresses
+            .Where(s => s.UserId == userId)
+            .Where(s => s.SkillStatus == SkillStatus.Completed)
+            .Select(s => s.Skill)
             .OrderByDescending(s => s.CompletedAt)
-            .Take(10).ToListAsync();
+            .Take(10)
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<Skill>> GetUnlockedSkillsAsync(string userId)
@@ -106,22 +109,30 @@ public class SkillRepository : ISkillRepository
 
     public async Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills(string userId)
     {
-        return await _context.UserSkillProgresses.Where(s => s.UserId == userId)
-            .Select(s => s.Skill)
-            .Where(s => s.Status == SkillStatus.InProgress || s.Status == SkillStatus.Locked)
-            .Where(s => s.Prerequisites.All(p => p.Prerequisite.Status == SkillStatus.Completed))
-            .Select(s => new SkillRecommendation
+        return await _context.UserSkillProgresses
+            .Where(s => s.UserId == userId)
+            .Where(s => s.SkillStatus == SkillStatus.InProgress || s.SkillStatus == SkillStatus.Locked)
+            .Where(s => s.Skill.Prerequisites
+                .All(p => _context.UserSkillProgresses
+                    .Any(sp => sp.SkillStatus == SkillStatus.Completed && sp.UserId == userId && sp.SkillId == p.PrerequisiteId)))
+            .Select(u => new SkillRecommendation
             {
-                LastLog = s.SkillLogs.Max(log => (DateTime?)log.Date),
-                Skill = s,
-                UnlockCount = _context.Prerequisites.Count(sp => sp.PrerequisiteId == s.Id),
+                LastLog = _context.SkillLogs.Where(s => s.UserId == userId).Where(s => s.SkillId == u.SkillId).Max(log => (DateTime?)log.Date),
+                Skill = u.Skill,
+                UnlockCount = _context.Prerequisites.Count(sp => sp.PrerequisiteId == u.Skill.Id),
             })
             .ToListAsync();
     }
 
-    public async Task UpdateAsync(Skill skill, string userId)
+    public async Task UpdateAsync(int skillId, string userId, SkillStatus newStatus)
     {
-        _context.Skills.Update(skill);
+        var a = await _context.UserSkillProgresses
+            .Where(s => s.UserId == userId)
+            .FirstOrDefaultAsync(s => s.SkillId == skillId);
+        if (a != null)
+        {
+            a.SkillStatus = newStatus;
+        }
         await _context.SaveChangesAsync();
     }
     
