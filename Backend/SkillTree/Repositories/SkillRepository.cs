@@ -69,10 +69,10 @@ public class SkillRepository : ISkillRepository
     public async Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync(string userId)
     {
         return await _context.UserSkillProgresses
-            .Where(s => s.UserId == userId)
-            .Where(s => s.SkillStatus == SkillStatus.Completed)
-            .Select(s => s.Skill)
-            .OrderByDescending(s => s.CompletedAt)
+            .Where(us => us.UserId == userId)
+            .Where(us => us.SkillStatus == SkillStatus.Completed)
+            .OrderByDescending(us => us.CompletedAt)
+            .Select(us => us.Skill)
             .Take(10)
             .ToListAsync();
     }
@@ -126,12 +126,13 @@ public class SkillRepository : ISkillRepository
 
     public async Task UpdateAsync(int skillId, string userId, SkillStatus newStatus)
     {
-        var a = await _context.UserSkillProgresses
+        var progress = await _context.UserSkillProgresses
             .Where(s => s.UserId == userId)
             .FirstOrDefaultAsync(s => s.SkillId == skillId);
-        if (a != null)
+        if (progress != null)
         {
-            a.SkillStatus = newStatus;
+            progress.SkillStatus = newStatus;
+            progress.CompletedAt = DateTime.UtcNow;
         }
         await _context.SaveChangesAsync();
     }
@@ -139,5 +140,25 @@ public class SkillRepository : ISkillRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId)
+    {
+        return await _context.UserSkillProgresses.Where(us => us.UserId == userId).FirstOrDefaultAsync(us => us.SkillId == skillId);
+    }
+
+    public async Task<UserSkillProgress> AddUserSkillProgressAsync(string userId, int skillId)
+    {
+        var us = new UserSkillProgress
+        {
+            Skill = await _context.Skills.FirstOrDefaultAsync(s => s.Id == skillId),
+            UserId = userId,
+            SkillId = skillId,
+            StartedAt = DateTime.UtcNow,
+            SkillStatus =  SkillStatus.Locked,
+        };
+        await _context.UserSkillProgresses.AddAsync(us);
+        await _context.SaveChangesAsync();
+        return us;
     }
 }

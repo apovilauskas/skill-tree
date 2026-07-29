@@ -1,5 +1,6 @@
 ﻿using skill_tree.Common;
 using skill_tree.DTOs;
+using skill_tree.Entities;
 
 namespace skill_tree.Services;
 
@@ -13,5 +14,6 @@ public interface ISkillService
     public Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog);
     public Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync();
     public Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync();
-    public Task<IEnumerable<UnlockedSkillResponseDto>> GetRecommendations();
+    public Task<IEnumerable<UnlockedSkillResponseDto>> GetRecommendationsAsync();
+    public Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId);
 }

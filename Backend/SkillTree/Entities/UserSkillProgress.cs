@@ -5,6 +5,8 @@ public class UserSkillProgress
     public int Id {get; set;}
     public string UserId { get; set; }
     public int SkillId { get; set; }
-    public Skill Skill { get; set; }
+    public Skill? Skill { get; set; }
     public SkillStatus SkillStatus { get; set; } 
+    public DateTime? CompletedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
 }

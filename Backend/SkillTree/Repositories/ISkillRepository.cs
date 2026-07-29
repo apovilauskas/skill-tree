@@ -20,5 +20,6 @@ public interface ISkillRepository
     public Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills(string userId);
     public Task UpdateAsync(int skillId, string userId, SkillStatus newStatus);
     public Task SaveChangesAsync();
-    
+    public Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId);
+    public Task<UserSkillProgress> AddUserSkillProgressAsync(string userId, int skillId);
 }
