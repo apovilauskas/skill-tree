@@ -117,14 +117,14 @@ public class SkillService : ISkillService
     {
         var userId = _currentUserService.GetUserId();
         if (userId == null) throw new UnauthorizedAccessException();
-        
-        if(!await _repository.ExistsAsync(skillId)) return false;
-        
+    
+        if (!await _repository.ExistsAsync(skillId)) return false;
+    
         var entity = skillLog.ToEntity();
         entity.SkillId = skillId;
         await _repository.AddLogAsync(entity, userId);
-        
-        await _repository.UpdateAsync(skillId, userId, await RefreshStatus(userId, skillId));
+    
+        await RefreshStatus(userId, skillId);
         return true;
     }
 
@@ -170,14 +170,29 @@ public class SkillService : ISkillService
         if (us == null) us = await _repository.AddUserSkillProgressAsync(userId, skillId);
 
         var skill = await _repository.GetSkillAsync(skillId);
+        if (skill == null) return SkillStatus.Locked;
+
         var target = skill.Target;
-        var startedAt = us.StartedAt ?? throw new InvalidOperationException("Started at error in SkillService");
+        var startedAt = us.StartedAt ?? throw new InvalidOperationException("StartedAt missing in SkillService");
         var logs = await _repository.GetLogsAsync(skillId, userId);
         var progress = Progress(target, logs.ToList(), startedAt);
 
-        if (progress >= 100 && us.SkillStatus != SkillStatus.Completed) return SkillStatus.Completed;
-        if (progress > 0 && us.SkillStatus == SkillStatus.Locked) return SkillStatus.InProgress;
-        return SkillStatus.Locked;
+        var newStatus = us.SkillStatus;
+        if (progress >= 100 && us.SkillStatus != SkillStatus.Completed)
+        {
+            newStatus = SkillStatus.Completed;
+        }
+        else if (progress > 0 && us.SkillStatus == SkillStatus.Locked)
+        {
+            newStatus = SkillStatus.InProgress;
+        }
+
+        if (newStatus != us.SkillStatus)
+        {
+            await _repository.UpdateAsync(skillId, userId, newStatus);
+        }
+
+        return newStatus;
     }
     
     public async Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync()
