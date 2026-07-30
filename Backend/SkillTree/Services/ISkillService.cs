@@ -10,10 +10,10 @@ public interface ISkillService
     public Task<IEnumerable<SkillResponseDto>> GetAllSkillsAsync();
     public Task<SkillResponseDto> CreateSkillAsync(CreateSkillDto skill);
     public Task<CreatePrerequisiteResult> CreatePrerequisiteAsync(int skillId, PrerequisiteIdDto prerequisiteId);
-    public Task<IEnumerable<SkillLogResponseDto>> GetSkillLogsAsync(int skillId);
+    public Task<IEnumerable<SkillLogResponseDto>?> GetSkillLogsAsync(int skillId);
     public Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog);
     public Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync();
     public Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync();
     public Task<IEnumerable<UnlockedSkillResponseDto>> GetRecommendationsAsync();
     public Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId);
-}
+}   

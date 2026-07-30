@@ -19,10 +19,18 @@ public class SkillService : ISkillService
     
     public async Task<CanStartResult> CanStartAsync(int skillId)
     {
+        var userId = _currentUserService.GetUserId();
+        if (userId == null) throw new UnauthorizedAccessException();
+
         var skill = await _repository.GetSkillAsync(skillId);
-        if(skill == null) return CanStartResult.SkillNotFound;
-        if (skill.Prerequisites.Any(sp => sp.Prerequisite.Status != SkillStatus.Completed)) return CanStartResult.LockedByPrerequisites;
-        return CanStartResult.Available;
+        if (skill == null) return CanStartResult.SkillNotFound;
+
+        var completedSkillIds = await _repository.GetCompletedSkillsIds(userId);
+
+        bool allPrerequisitesCompleted = skill.Prerequisites
+            .All(p => completedSkillIds.Contains(p.PrerequisiteId));
+
+        return allPrerequisitesCompleted ? CanStartResult.Available : CanStartResult.LockedByPrerequisites;
     }
     
     private async Task<Dictionary<int, List<int>>> BuildGraphAsync()
@@ -47,15 +55,30 @@ public class SkillService : ISkillService
 
     public async Task<IEnumerable<SkillResponseDto>> GetAllSkillsAsync()
     {
-        var skills = await _repository.GetAllAsync();
-        return skills.Select(s => s.ToDto());
+        var id = _currentUserService.GetUserId();
+        if (id == null) throw new UnauthorizedAccessException();
+
+        var skills = (await _repository.GetAllSkillsWithPrerequisitesAsync()).ToList();
+        var progressBySkill = await _repository.GetAllUserSkillProgressesAsync(id);
+        var statusMap = progressBySkill.ToDictionary(kv => kv.Key, kv => kv.Value.SkillStatus);
+        var skillIds = skills.Select(s => s.Id).ToList();
+        var logsBySkill = await _repository.GetLogsBySkillIdsAsync(id, skillIds);
+
+        return skills.Select(skill =>
+        {
+            progressBySkill.TryGetValue(skill.Id, out var progress);
+            var logs = logsBySkill.GetValueOrDefault(skill.Id, new List<SkillLog>());
+            var startedAt = progress?.StartedAt ?? skill.CreatedAt;
+            var progressValue = Progress(skill.Target, logs, startedAt);
+            return skill.ToDto(progress, progressValue, statusMap);
+        });
     }
 
     public async Task<SkillResponseDto> CreateSkillAsync(CreateSkillDto skill)
     {
         var entity = skill.ToEntity();
         await _repository.AddAsync(entity);
-        return entity.ToDto();
+        return entity.ToDto(userProgress: null, progressValue: 0.0, prerequisiteStatuses: new Dictionary<int, SkillStatus>());
     }
 
     public async Task<CreatePrerequisiteResult> CreatePrerequisiteAsync(int skillId, PrerequisiteIdDto prerequisiteId)
@@ -78,12 +101,16 @@ public class SkillService : ISkillService
         await _repository.AddPrerequisitesAsync(skillPrerequisite);
         return CreatePrerequisiteResult.Success;
     }
-
-    public async Task<IEnumerable<SkillLogResponseDto>> GetSkillLogsAsync(int skillId)
+    
+    public async Task<IEnumerable<SkillLogResponseDto>?> GetSkillLogsAsync(int skillId)
     {
-        if(!await _repository.ExistsAsync(skillId)) return null;
-        var sk = await _repository.GetLogsAsync();
-        return sk.Select(s => s.ToDto());
+        var userId = _currentUserService.GetUserId();
+        if (userId == null) throw new UnauthorizedAccessException();
+
+        if (!await _repository.ExistsAsync(skillId)) return null;
+
+        var logs = await _repository.GetLogsAsync(skillId, userId);
+        return logs.Select(s => s.ToDto());
     }
     
     public async Task<bool> CreateSkillLogAsync(int skillId, CreateSkillLogDto skillLog)
@@ -152,36 +179,55 @@ public class SkillService : ISkillService
         if (progress > 0 && us.SkillStatus == SkillStatus.Locked) return SkillStatus.InProgress;
         return SkillStatus.Locked;
     }
-
+    
     public async Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync()
     {
         var id = _currentUserService.GetUserId();
         if (id == null) throw new UnauthorizedAccessException();
-        var skills = await _repository.GetCompletedSortedRecentSkillsAsync(id);
-        return skills.Select(s => s.ToCompletedDto());
+        var progresses = await _repository.GetCompletedSortedRecentSkillsAsync(id);
+        return progresses.Select(p => p.Skill.ToCompletedDto(p.CompletedAt ?? DateTime.UtcNow));
     }
     
     public async Task<IEnumerable<UnlockedSkillResponseDto>> GetUnlockedSkillsAsync()
     {
         var id = _currentUserService.GetUserId();
         if (id == null) throw new UnauthorizedAccessException();
-        var skills = await _repository.GetUnlockedSkillsAsync(id);
-        return skills.Select(s => s.ToUnlockedDto());
+
+        var progresses = (await _repository.GetUnlockedSkillsAsync(id)).ToList();
+        var skillIds = progresses.Select(p => p.SkillId).ToList();
+        var logsBySkill = await _repository.GetLogsBySkillIdsAsync(id, skillIds);
+
+        return progresses.Select(p =>
+        {
+            var logs = logsBySkill.GetValueOrDefault(p.SkillId, new List<SkillLog>());
+            var startedAt = p.StartedAt ?? throw new InvalidOperationException("StartedAt missing on existing progress row");
+            var progressValue = Progress(p.Skill.Target, logs, startedAt);
+            return p.Skill.ToUnlockedDto(progressValue);
+        });
     }
 
     public async Task<IEnumerable<UnlockedSkillResponseDto>> GetRecommendationsAsync()
     {
         var id = _currentUserService.GetUserId();
         if (id == null) throw new UnauthorizedAccessException();
-        var skills = await _repository.GetRecommendedSkills(id);
 
-        return skills
-            .OrderByDescending(Formula) 
-            .Select(s => s.Skill.ToUnlockedDto())
+        var recommendations = (await _repository.GetRecommendedSkills(id)).ToList();
+        var skillIds = recommendations.Select(r => r.Skill.Id).ToList();
+        var logsBySkill = await _repository.GetLogsBySkillIdsAsync(id, skillIds);
+
+        return recommendations
+            .OrderByDescending(RankingFormula)
+            .Select(r =>
+            {
+                var logs = logsBySkill.GetValueOrDefault(r.Skill.Id, new List<SkillLog>());
+                var startedAt = r.StartedAt ?? throw new InvalidOperationException("StartedAt missing on existing progress row");
+                var progressValue = Progress(r.Skill.Target, logs, startedAt);
+                return r.Skill.ToUnlockedDto(progressValue);
+            })
             .Take(3);
     }
 
-    private double Formula(SkillRecommendation skill)
+    private double RankingFormula(SkillRecommendation skill)
     {
         double total = 0;
         

@@ -12,27 +12,28 @@ public static class SkillMappingExtensions
             Name = dto.Name,
             Description = dto.Description,
             Metric = dto.Metric,
-            Target = dto.Target?? 100
+            Target = dto.Target ?? 100
         };
         return entity;
     }
 
-    public static SkillResponseDto ToDto(this Skill entity)
+    public static SkillResponseDto ToDto(this Skill entity, UserSkillProgress? userProgress, double progressValue, IReadOnlyDictionary<int, SkillStatus> prerequisiteStatuses)
     {
-        List<PrerequisiteInfoResponseDto> infos = entity.Prerequisites.Select(s=> s.ToDto()).ToList();
-        
-        var dto = new SkillResponseDto()
+        List<PrerequisiteInfoResponseDto> infos = entity.Prerequisites
+            .Select(p => p.ToDto(prerequisiteStatuses.GetValueOrDefault(p.PrerequisiteId, SkillStatus.Locked)))
+            .ToList();
+        var dto = new SkillResponseDto
         {
             Name = entity.Name,
             Description = entity.Description,
             Metric = entity.Metric,
             Target = entity.Target,
-            Status =  entity.Status,
-            Id =  entity.Id,
+            Status = userProgress?.SkillStatus ?? SkillStatus.Locked,
+            Id = entity.Id,
             CreatedAt = entity.CreatedAt,
-            CompletedAt = entity.CompletedAt,
-            Progress = entity.Progress(),
-            PrerequisitesInfo =  infos
+            CompletedAt = userProgress?.CompletedAt,
+            Progress = progressValue,
+            PrerequisitesInfo = infos
         };
         return dto;
     }
@@ -51,50 +52,50 @@ public static class SkillMappingExtensions
     {
         var dto = new SkillLogResponseDto
         {
-            Id =  entity.Id,
+            Id = entity.Id,
             Amount = entity.Amount,
-            Note =  entity.Note,
+            Note = entity.Note,
             CreatedAt = entity.Date
         };
         return dto;
     }
 
-    public static PrerequisiteInfoResponseDto ToDto(this SkillPrerequisite entity)
+    public static PrerequisiteInfoResponseDto ToDto(this SkillPrerequisite entity, SkillStatus prerequisiteStatus)
     {
         var dto = new PrerequisiteInfoResponseDto
         {
-            Id =  entity.PrerequisiteId,
+            Id = entity.PrerequisiteId,
             Description = entity.Prerequisite.Description,
             Name = entity.Prerequisite.Name,
-            Status = entity.Prerequisite.Status
+            Status = prerequisiteStatus
         };
         return dto;
     }
-    
-    public static UnlockedSkillResponseDto ToUnlockedDto(this Skill entity)
+
+    public static UnlockedSkillResponseDto ToUnlockedDto(this Skill entity, double progressValue)
     {
-        var dto = new UnlockedSkillResponseDto()
+        var dto = new UnlockedSkillResponseDto
         {
             Name = entity.Name,
             Description = entity.Description,
             Metric = entity.Metric,
             Target = entity.Target,
-            Id =  entity.Id,
-            Progress = entity.Progress(),
+            Id = entity.Id,
+            Progress = progressValue,
         };
         return dto;
     }
-    
-    public static CompletedSkillResponseDto ToCompletedDto(this Skill entity)
+
+    public static CompletedSkillResponseDto ToCompletedDto(this Skill entity, DateTime completedAt)
     {
-        var dto = new CompletedSkillResponseDto()
+        var dto = new CompletedSkillResponseDto
         {
             Name = entity.Name,
             Description = entity.Description,
             Metric = entity.Metric,
             Target = entity.Target,
-            Id =  entity.Id,
-            CompletedAt = entity.CompletedAt ??  DateTime.UtcNow,
+            Id = entity.Id,
+            CompletedAt = completedAt,
         };
         return dto;
     }

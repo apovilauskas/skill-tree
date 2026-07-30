@@ -27,6 +27,13 @@ public class SkillRepository : ISkillRepository
             .Include(s => s.Prerequisites)
             .ToListAsync();
     }
+    
+    public async Task<Dictionary<int, UserSkillProgress>> GetAllUserSkillProgressesAsync(string userId)
+    {
+        return await _context.UserSkillProgresses
+            .Where(p => p.UserId == userId)
+            .ToDictionaryAsync(p => p.SkillId);
+    }
 
     public async Task AddAsync(Skill skill)
     {
@@ -49,6 +56,14 @@ public class SkillRepository : ISkillRepository
     {
         return await _context.SkillLogs.Where(s => s.UserId == userId).Where(l => l.SkillId == skillId).ToListAsync();
     }
+    
+    public async Task<Dictionary<int, List<SkillLog>>> GetLogsBySkillIdsAsync(string userId, IEnumerable<int> skillIds)
+    {
+        return await _context.SkillLogs
+            .Where(l => l.UserId == userId && skillIds.Contains(l.SkillId))
+            .GroupBy(l => l.SkillId)
+            .ToDictionaryAsync(g => g.Key, g => g.ToList());
+    }
 
     public async Task AddLogAsync(SkillLog skillLog, string userId)
     {
@@ -62,22 +77,21 @@ public class SkillRepository : ISkillRepository
         return await _context.Skills
             .Include(skill => skill.Prerequisites)
             .ThenInclude(p => p.Prerequisite)
-            .Include(skill => skill.SkillLogs)
             .FirstOrDefaultAsync(s => s.Id == skillId);
     }
-
-    public async Task<IEnumerable<Skill>> GetCompletedSortedRecentSkillsAsync(string userId)
+    
+    public async Task<IEnumerable<UserSkillProgress>> GetCompletedSortedRecentSkillsAsync(string userId)
     {
         return await _context.UserSkillProgresses
             .Where(us => us.UserId == userId)
             .Where(us => us.SkillStatus == SkillStatus.Completed)
+            .Include(us => us.Skill)
             .OrderByDescending(us => us.CompletedAt)
-            .Select(us => us.Skill)
             .Take(10)
             .ToListAsync();
     }
-
-    public async Task<IEnumerable<Skill>> GetUnlockedSkillsAsync(string userId)
+    
+    public async Task<IEnumerable<UserSkillProgress>> GetUnlockedSkillsAsync(string userId)
     {
         return await _context.UserSkillProgresses
             .Where(s => s.UserId == userId)
@@ -85,7 +99,7 @@ public class SkillRepository : ISkillRepository
             .Where(s => s.Skill.Prerequisites
                 .All(p => _context.UserSkillProgresses
                     .Any(sp => sp.SkillStatus == SkillStatus.Completed && sp.UserId == userId && sp.SkillId == p.PrerequisiteId)))
-            .Select(s => s.Skill)
+            .Include(s => s.Skill)
             .ToListAsync();
     }
     
@@ -123,16 +137,20 @@ public class SkillRepository : ISkillRepository
             })
             .ToListAsync();
     }
-
+    
     public async Task UpdateAsync(int skillId, string userId, SkillStatus newStatus)
     {
         var progress = await _context.UserSkillProgresses
             .Where(s => s.UserId == userId)
             .FirstOrDefaultAsync(s => s.SkillId == skillId);
+
         if (progress != null)
         {
+            if (newStatus == SkillStatus.Completed && progress.SkillStatus != SkillStatus.Completed)
+            {
+                progress.CompletedAt = DateTime.UtcNow;
+            }
             progress.SkillStatus = newStatus;
-            progress.CompletedAt = DateTime.UtcNow;
         }
         await _context.SaveChangesAsync();
     }
@@ -160,5 +178,15 @@ public class SkillRepository : ISkillRepository
         await _context.UserSkillProgresses.AddAsync(us);
         await _context.SaveChangesAsync();
         return us;
+    }
+
+    public async Task<IEnumerable<int>> GetCompletedSkillsIds(string userId)
+    {
+        return await _context.UserSkillProgresses
+            .Where(us => us.UserId == userId)
+            .Where(us => us.SkillStatus == SkillStatus.Completed)
+            .Select(us => us.SkillId)
+            .Distinct()
+            .ToListAsync();
     }
 }
