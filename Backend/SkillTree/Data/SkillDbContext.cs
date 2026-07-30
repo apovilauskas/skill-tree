@@ -31,12 +31,6 @@ public class SkillDbContext : DbContext
             HasForeignKey(f => f.PrerequisiteId).
             OnDelete(DeleteBehavior.Cascade);
         
-        modelBuilder.Entity<SkillLog>().
-            HasOne(s => s.Skill).
-            WithMany(s => s.SkillLogs).
-            HasForeignKey(f => f.SkillId).
-            OnDelete(DeleteBehavior.Cascade);
-
         modelBuilder.Entity<UserSkillProgress>().
             
             HasOne(s => s.Skill).
@@ -47,6 +41,5 @@ public class SkillDbContext : DbContext
         modelBuilder.Entity<UserSkillProgress>().
             HasIndex(s => new {s.UserId, s.SkillId}).
             IsUnique();
-        
     }
 }

@@ -16,11 +16,6 @@ public class SkillRepository : ISkillRepository
         _context = context;
     }
     
-    public async Task<IEnumerable<Skill>> GetAllAsync()
-    {
-        return await _context.Skills.ToListAsync();
-    }
-    
     public async Task<IEnumerable<Skill>> GetAllSkillsWithPrerequisitesAsync()
     {
         return await _context.Skills
@@ -93,18 +88,6 @@ public class SkillRepository : ISkillRepository
     
     public async Task<IEnumerable<UserSkillProgress>> GetUnlockedSkillsAsync(string userId)
     {
-        return await _context.UserSkillProgresses
-            .Where(s => s.UserId == userId)
-            .Where(s => s.SkillStatus == SkillStatus.InProgress || s.SkillStatus == SkillStatus.Locked)
-            .Where(s => s.Skill.Prerequisites
-                .All(p => _context.UserSkillProgresses
-                    .Any(sp => sp.SkillStatus == SkillStatus.Completed && sp.UserId == userId && sp.SkillId == p.PrerequisiteId)))
-            .Include(s => s.Skill)
-            .ToListAsync();
-    }
-    
-    public async Task<IEnumerable<UserSkillProgress>> GetUnlockedSkillsAsync(string userId)
-    {
         var unlockedSkillsWithProgress = await _context.Skills
             .Where(s => s.Prerequisites.All(p => 
                 _context.UserSkillProgresses.Any(sp => 
@@ -146,24 +129,6 @@ public class SkillRepository : ISkillRepository
             x => x.SkillId,
             x => x.PrerequisiteIds
         );
-    }
-
-    public async Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills(string userId)
-    {
-        return await _context.UserSkillProgresses
-            .Where(s => s.UserId == userId)
-            .Where(s => s.SkillStatus == SkillStatus.InProgress || s.SkillStatus == SkillStatus.Locked)
-            .Where(s => s.Skill.Prerequisites
-                .All(p => _context.UserSkillProgresses
-                    .Any(sp => sp.SkillStatus == SkillStatus.Completed && sp.UserId == userId && sp.SkillId == p.PrerequisiteId)))
-            .Select(u => new SkillRecommendation
-            {
-                LastLog = _context.SkillLogs.Where(s => s.UserId == userId).Where(s => s.SkillId == u.SkillId).Max(log => (DateTime?)log.Date),
-                Skill = u.Skill,
-                UnlockCount = _context.Prerequisites.Count(sp => sp.PrerequisiteId == u.Skill.Id),
-                StartedAt = u.StartedAt
-            })
-            .ToListAsync();
     }
     
     public async Task<IEnumerable<SkillRecommendation>> GetRecommendedSkills(string userId)
@@ -208,11 +173,6 @@ public class SkillRepository : ISkillRepository
             }
             progress.SkillStatus = newStatus;
         }
-        await _context.SaveChangesAsync();
-    }
-    
-    public async Task SaveChangesAsync()
-    {
         await _context.SaveChangesAsync();
     }
 
