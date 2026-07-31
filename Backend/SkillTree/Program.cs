@@ -1,22 +1,30 @@
 using Microsoft.EntityFrameworkCore;
+using skill_tree.Common;
 using skill_tree.Data;
 using skill_tree.Repositories;
 using skill_tree.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Framework
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
+// Data
 builder.Services.AddDbContext<SkillDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<ISkillService, SkillService>();
+// Application services
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ICurrentUserService, HeaderCurrentUserService>();
-builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
@@ -24,7 +32,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.MapControllers();
 
 app.Run();

@@ -10,7 +10,7 @@ public class HeaderCurrentUserService : ICurrentUserService
     
     public string? GetUserId()
     {
-        string? id = _httpContextAccessor.HttpContext?.Request.Headers["UserId"].ToString();
+        string? id = _httpContextAccessor.HttpContext?.Request.Headers["X-User-Id"].ToString();
         return string.IsNullOrEmpty(id) ? null : id;
     }
 }

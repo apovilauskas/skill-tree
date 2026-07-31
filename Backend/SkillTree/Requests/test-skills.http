@@ -2,7 +2,7 @@
 
 ### 1. Get All Skills
 GET {{baseUrl}}/api/skills
-
+X-User-Id: AugustasId
 
 ### 2. Create a new Skill
 POST {{baseUrl}}/api/skills
@@ -20,10 +20,8 @@ Content-Type: application/json
 
 {
   "name": "Git Fundamentals",
-  "description": "Master git clone, commit, push, pull, and branching.",
-  "status": 0
+  "description": "Master git clone, commit, push, pull, and branching."  
 }
-
 
 ### 4. Add Prerequisite (Skill 2 requires Skill 1)
 POST {{baseUrl}}/api/skills/2/prerequisites
@@ -33,21 +31,21 @@ Content-Type: application/json
   "id": 1
 }
 
-
 ### 5. Check if Skill 1 can be started
 GET {{baseUrl}}/api/skills/canStart/1
-
+X-User-Id: AugustasId
 
 ### 6. Check if Skill 2 can be started (should be locked)
 GET {{baseUrl}}/api/skills/canStart/2
-
+X-User-Id: AugustasId
 
 ### 7. Get Skill Logs
 GET {{baseUrl}}/api/skills/1/logs
-
+X-User-Id: AugustasId
 
 ### 8. Add a Skill Log
 POST {{baseUrl}}/api/skills/1/logs
+X-User-Id: AugustasId
 Content-Type: application/json
 
 {
@@ -57,9 +55,12 @@ Content-Type: application/json
 
 ### 9. Get Unlocked Skills
 GET {{baseUrl}}/api/skills/unlocked
+X-User-Id: AugustasId
 
 ### 10. Get Completed Skills
 GET {{baseUrl}}/api/skills/completed
+X-User-Id: AugustasId
 
 ### 11. Get Recommended Skills (Top Priorities)
 GET {{baseUrl}}/api/skills/recommended
+X-User-Id: AugustasId
