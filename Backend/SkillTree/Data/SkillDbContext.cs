@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using skill_tree.Entities;
 
 namespace skill_tree.Data;
 
-public class SkillDbContext : DbContext
+public class SkillDbContext : IdentityDbContext<IdentityUser>
 {
     public SkillDbContext(DbContextOptions<SkillDbContext> options) : base(options)
     {
