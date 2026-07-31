@@ -20,6 +20,7 @@ public class SkillRepository : ISkillRepository
     {
         return await _context.Skills
             .Include(s => s.Prerequisites)
+            .ThenInclude(s => s.Prerequisite)
             .ToListAsync();
     }
     

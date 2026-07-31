@@ -84,7 +84,7 @@ public class SkillsController : ControllerBase
     [HttpGet("recommended")]
     public async Task<IActionResult> Recommended()
     {
-        var response = await _skillService.GetRecommendations();
+        var response = await _skillService.GetRecommendationsAsync();
         return Ok(response);
     }
 }
