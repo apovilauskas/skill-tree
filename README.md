@@ -6,6 +6,8 @@ A backend API for tracking personal skill development as a **prerequisite-gated 
 
 Skill Tree is an ASP.NET Core Web API that models learning and practice as a directed graph of skills. Each skill has a target (e.g. "50 matches" or "20 hours"), and users log sessions against it over time. Progress isn't a simple ratio — it factors in consistency and streaks, rewarding steady practice over last-minute cramming. Skills can require other skills as prerequisites, and the API enforces a valid, acyclic dependency graph before any relationship is created.
 
+The skill tree itself is shared — everyone works through the same set of skills and prerequisites — but progress through it is personal: each user has their own unlock/completion state, tracked separately via a real login system.
+
 The project was built to practice a clean, layered .NET architecture: Controllers → Services → Repositories, backed by EF Core and PostgreSQL, with manual DTO mapping and unit tests around the core business logic.
 
 ## Features
@@ -17,24 +19,44 @@ The project was built to practice a clean, layered .NET architecture: Controller
 - **Unlock gating** — `CanStart` endpoint checks whether a skill's prerequisites are satisfied
 - **Unlocked / Completed views** — quickly list skills by status
 - **Smart recommendations** — surfaces the top 3 skills worth focusing on next, based on how long they've been neglected and how many other skills they unlock
+- **Multi-user accounts with role-based access** — every user tracks their own progress through the same shared skill tree; editing the tree itself is restricted to admins
+- **JWT authentication** — register/login issue a bearer token; all other endpoints require it
 - **Repository Pattern + Service Layer** — clean separation between data access, business logic, and API surface
 - **Manual DTO mapping** — explicit mapping via extension methods, no AutoMapper magic
 - **Async EF Core + PostgreSQL** — fully async data access throughout
-- **xUnit tests** — coverage for the progress formula, plus service-layer logic like `CanStart` gating and circular-dependency detection at multiple graph depths, using Moq to mock the repository layer
+- **xUnit tests** — coverage for the progress formula, plus service-layer logic like `CanStart` gating and circular-dependency detection at multiple graph depths, using Moq to mock the repository and Identity layers
 
 ### API Endpoints
 
-| Method | Route | Description |
-|---|---|---|
-| GET | `/api/skills` | Get all skills |
-| POST | `/api/skills` | Create a new skill |
-| POST | `/api/skills/{skillId}/prerequisites` | Add a prerequisite to a skill |
-| GET | `/api/skills/{skillId}/logs` | Get logs for a skill |
-| POST | `/api/skills/{skillId}/logs` | Add a practice log to a skill |
-| GET | `/api/skills/canStart/{skillId}` | Check if a skill's prerequisites are met |
-| GET | `/api/skills/unlocked` | Get all unlocked (in-progress) skills |
-| GET | `/api/skills/completed` | Get all completed skills |
-| GET | `/api/skills/recommended` | Get the top 3 recommended skills |
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | None | Register a new account (assigned the `User` role) |
+| POST | `/api/auth/login` | None | Log in and receive a JWT bearer token |
+| GET | `/api/auth/me` | Any user | Return the logged-in user's identity |
+| GET | `/api/skills` | Any user | Get all skills |
+| POST | `/api/skills` | Admin | Create a new skill |
+| POST | `/api/skills/{skillId}/prerequisites` | Admin | Add a prerequisite to a skill |
+| GET | `/api/skills/{skillId}/logs` | Any user | Get logs for a skill |
+| POST | `/api/skills/{skillId}/logs` | Any user | Add a practice log to a skill |
+| GET | `/api/skills/canStart/{skillId}` | Any user | Check if a skill's prerequisites are met |
+| GET | `/api/skills/unlocked` | Any user | Get the caller's unlocked (in-progress) skills |
+| GET | `/api/skills/completed` | Any user | Get the caller's completed skills |
+| GET | `/api/skills/recommended` | Any user | Get the caller's top 3 recommended skills |
+
+## Authentication & Authorization
+
+The API uses **ASP.NET Core Identity** for user accounts and **JWT bearer tokens** for authentication. To call any endpoint other than `register` or `login`, you need a token:
+
+1. Register an account via `POST /api/auth/register`, or use the seeded admin account (see below).
+2. Log in via `POST /api/auth/login` to receive a token.
+3. Attach it to every subsequent request as an `Authorization: Bearer <token>` header.
+
+There are two roles:
+
+- **User** — the default role, assigned automatically on registration. Can log practice, view their own progress, and read the shared skill tree.
+- **Admin** — can additionally create and modify the shared skill tree (skills and prerequisites), since those changes affect every user.
+
+A default admin account is seeded automatically on startup from the `AdminSeed` section of `appsettings.Development.json` — check that file locally for the seeded username/password rather than hardcoding them here.
 
 ## Getting Started
  
@@ -62,7 +84,8 @@ The project was built to practice a clean, layered .NET architecture: Controller
      dotnet run
 ```
 5. Navigate to `https://localhost:PORT` (check your terminal output for the exact port)
-6. Use the included `Requests/test-skills.http` file to try out the endpoints directly from your IDE
+6. Register a user (or use the seeded admin account) and log in via `/api/auth/login` to get a bearer token — every endpoint besides register/login requires it
+7. Use the included `Requests/test-skills.http` and `Requests/test-authentication.http` files to try out the endpoints directly from your IDE
 
 ## Under the Hood: The Algorithms & Data Model
 
@@ -70,10 +93,11 @@ Four pieces of this project were worth designing carefully rather than reaching 
 
 ### 1. The Relationships
 
-Two EF Core relationships do the heavy lifting, and one of them is self-referencing:
+Three EF Core relationships do the heavy lifting, two of them self-referencing or per-user:
 
-- **`Skill` → `SkillLog` (one-to-many)** — a skill has many logs, each log belongs to exactly one skill.
+- **`Skill` → `SkillLog` (one-to-many)** — a skill has many logs, each log belongs to exactly one skill and one user.
 - **`Skill` → `SkillPrerequisite` (self-referencing many-to-many)** — `SkillPrerequisite` is a join entity connecting `Skill` to itself: `SkillId` is the skill being gated, `PrerequisiteId` is the skill gating it. A skill can have many prerequisites, *and* the same skill can be listed as a prerequisite on many other skills.
+- **`ApplicationUser` → `UserSkillProgress` (one-to-many)** — the skill tree itself (`Skill`, its targets, and its prerequisites) is shared and global, but each user's status on a given skill — locked, in progress, or completed — lives on their own `UserSkillProgress` row. Two users can be at completely different points on the same tree.
 
 ### 2. Progress Calculation
 
@@ -140,6 +164,8 @@ This balances two competing signals: skills you've been neglecting, and skills t
 
 **Technologies**
 - ASP.NET Core Web API (Controllers)
+- ASP.NET Core Identity
+- JWT Bearer Authentication
 - Entity Framework Core
 - PostgreSQL
 - xUnit
@@ -149,8 +175,9 @@ This balances two competing signals: skills you've been neglecting, and skills t
 - Repository Pattern for data access abstraction
 - Service Layer for business logic
 - async/await throughout the data access and service layers
-- EF Core relationships & navigation properties (skill ↔ prerequisites ↔ logs)
+- EF Core relationships & navigation properties (skill ↔ prerequisites ↔ logs ↔ per-user progress)
 - Manual DTO mapping via extension methods
+- Role-based authorization (User vs. Admin)
 
 ---
 Thanks for checking out the project!
