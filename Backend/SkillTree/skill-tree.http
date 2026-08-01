@@ -1,6 +1,1 @@
 @skill_tree_HostAddress = http://localhost:5169
-
-GET {{skill_tree_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

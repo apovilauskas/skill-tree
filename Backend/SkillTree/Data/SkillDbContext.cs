@@ -5,7 +5,7 @@ using skill_tree.Entities;
 
 namespace skill_tree.Data;
 
-public class SkillDbContext : IdentityDbContext<IdentityUser>
+public class SkillDbContext : IdentityDbContext<ApplicationUser>
 {
     public SkillDbContext(DbContextOptions<SkillDbContext> options) : base(options)
     {
