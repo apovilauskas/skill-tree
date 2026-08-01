@@ -56,16 +56,18 @@ public class AuthController : ControllerBase
         var keyString = _configuration["Jwt:Key"];
         var issuer = _configuration["Jwt:Issuer"];
         var audience = _configuration["Jwt:Audience"];
+        var roles = await _userManager.GetRolesAsync(user);
 
         List<Claim> claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim(ClaimTypes.NameIdentifier, user.Id)
         };
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
         
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
+        
         var tokens = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,

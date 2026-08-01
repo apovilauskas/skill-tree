@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using skill_tree.Common;
 using skill_tree.DTOs;
 using skill_tree.Entities;
@@ -18,6 +19,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetAllSkills()
     {
         var skills = await _skillService.GetAllSkillsAsync();
@@ -25,6 +27,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateSkill(CreateSkillDto skill)
     {
         SkillResponseDto response = await _skillService.CreateSkillAsync(skill);
@@ -32,6 +35,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpPost("{skillId}/prerequisites")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreatePrerequisite(int skillId, [FromBody] PrerequisiteIdDto prerequisiteId)
     {
         var result =  await _skillService.CreatePrerequisiteAsync(skillId, prerequisiteId);
@@ -41,6 +45,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpGet("{skillId}/logs")]
+    [Authorize]
     public async Task<IActionResult> GetSkillLogs(int skillId)
     {
         var logs = await _skillService.GetSkillLogsAsync(skillId);
@@ -49,6 +54,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpPost("{skillId}/logs")]
+    [Authorize]
     public async Task<IActionResult> CreateSkillLog(int skillId, [FromBody] CreateSkillLogDto skillLog)
     {
         if (!await _skillService.CreateSkillLogAsync(skillId, skillLog))
@@ -59,6 +65,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpGet("canStart/{skillId}")]
+    [Authorize]
     public async Task<IActionResult> CanStartAsync(int skillId)
     {
         var response = await _skillService.CanStartAsync(skillId);
@@ -68,6 +75,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpGet("unlocked")]
+    [Authorize]
     public async Task<IActionResult> Unlocked()
     {
         var response = await _skillService.GetUnlockedSkillsAsync();
@@ -75,6 +83,7 @@ public class SkillsController : ControllerBase
     }
 
     [HttpGet("completed")]
+    [Authorize]
     public async Task<IActionResult> Completed()
     {
         var response = await _skillService.GetCompletedSkillsAsync();
@@ -82,9 +91,12 @@ public class SkillsController : ControllerBase
     }
 
     [HttpGet("recommended")]
+    [Authorize]
     public async Task<IActionResult> Recommended()
     {
         var response = await _skillService.GetRecommendationsAsync();
         return Ok(response);
     }
+    
+    //httpdelete skill, httpput edit skill, httpdelete prerequisite - all admin-only
 }
