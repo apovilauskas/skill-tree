@@ -1,12 +1,12 @@
 ﻿@baseUrl = http://localhost:5169
 
-### 1. Get All Skills
+### 1. Get All Skills (any user)
 GET {{baseUrl}}/api/skills
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
 
-### 2. Create a new Skill
+### 2. Create a new Skill (admin)
 POST {{baseUrl}}/api/skills
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -15,9 +15,9 @@ Content-Type: application/json
   "status": 0
 }
 
-### 3. Create Another Skill
+### 3. Create Another Skill (admin)
 POST {{baseUrl}}/api/skills
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -25,30 +25,30 @@ Content-Type: application/json
   "description": "Master git clone, commit, push, pull, and branching."
 }
 
-### 4. Add Prerequisite (Skill 2 requires Skill 1)
+### 4. Add Prerequisite (Skill 2 requires Skill 1) (admin)
 POST {{baseUrl}}/api/skills/2/prerequisites
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
   "id": 1
 }
 
-### 5. Check if Skill 1 can be started
+### 5. Check if Skill 1 can be started (any user)
 GET {{baseUrl}}/api/skills/canStart/1
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
 
-### 6. Check if Skill 2 can be started (should be locked)
+### 6. Check if Skill 2 can be started (should be locked) (any user)
 GET {{baseUrl}}/api/skills/canStart/2
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
 
-### 7. Get Skill Logs
+### 7. Get Skill Logs (any user)
 GET {{baseUrl}}/api/skills/1/logs
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
 
-### 8. Add a Skill Log
+### 8. Add a Skill Log (any user)
 POST {{baseUrl}}/api/skills/1/logs
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
 Content-Type: application/json
 
 {
@@ -56,14 +56,73 @@ Content-Type: application/json
   "amount": 45
 }
 
-### 9. Get Unlocked Skills
+### 9. Get Unlocked Skills (any user)
 GET {{baseUrl}}/api/skills/unlocked
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
 
-### 10. Get Completed Skills
+### 10. Get Completed Skills (any user)
 GET {{baseUrl}}/api/skills/completed
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
 
-### 11. Get Recommended Skills (Top Priorities)
+### 11. Get Recommended Skills (Top Priorities) (any user)
 GET {{baseUrl}}/api/skills/recommended
-Authorization: Bearer {{token1}}
+Authorization: Bearer {{userToken}}
+
+### 12. Edit Skill 1 (admin)
+PUT {{baseUrl}}/api/skills/editSkill/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Comfortable with Linux CLI",
+  "description": "Updated: basic bash commands, navigation, not using the mouse",
+  "metric": "hours"
+}
+
+### 13. Remove Prerequisite (admin)
+DELETE {{baseUrl}}/api/skills/deletePrerequisite/1
+Authorization: Bearer {{adminToken}}
+
+### 14. Delete Skill 2 (admin)
+DELETE {{baseUrl}}/api/skills/deleteSkill/2
+Authorization: Bearer {{adminToken}}
+
+### Admin-only rejection checks (regular user should get 403 on all)
+
+### 15. Create Skill as regular user - expected to fail (403)
+POST {{baseUrl}}/api/skills
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "name": "Should Not Be Created",
+  "description": "This request should be rejected."
+}
+
+### 16. Add Prerequisite as regular user - expected to fail (403)
+POST {{baseUrl}}/api/skills/1/prerequisites
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "id": 1
+}
+
+### 17. Edit Skill as regular user - expected to fail (403)
+PUT {{baseUrl}}/api/skills/editSkill/1
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "name": "Should Not Be Edited",
+  "description": "",
+  "metric": ""
+}
+
+### 18. Delete Skill as regular user - expected to fail (403)
+DELETE {{baseUrl}}/api/skills/deleteSkill/1
+Authorization: Bearer {{userToken}}
+
+### 19. Remove Prerequisite as regular user - expected to fail (403)
+DELETE {{baseUrl}}/api/skills/deletePrerequisite/1
+Authorization: Bearer {{userToken}}

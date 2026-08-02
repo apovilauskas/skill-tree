@@ -1,6 +1,8 @@
-### Register
+@baseUrl = http://localhost:5169
+
+### Register a regular user
 # @name register
-POST http://localhost:5169/api/auth/register
+POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
@@ -8,9 +10,9 @@ Content-Type: application/json
   "password": "Password123!"
 }
 
-### Login (registered user)
-# @name login1
-POST http://localhost:5169/api/auth/login
+### Login as the regular user
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -19,16 +21,34 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("token1", response.body.token);
+    client.global.set("userToken", response.body.token);
 %}
 
-### Get me (authorized)
-GET http://localhost:5169/api/auth/me
-Authorization: Bearer {{token1}}
+### Login as the seeded admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "AdminPassword123!"
+}
+
+> {%
+    client.global.set("adminToken", response.body.token);
+%}
+
+### Get me (regular user, authorized)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{userToken}}
+
+### Get me (admin, authorized)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{adminToken}}
 
 ### Login (unregistered user) - expected to fail
-# @name login2
-POST http://localhost:5169/api/auth/login
+# @name loginUnregistered
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -37,9 +57,9 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("token2", response.body?.token || "invalid-token");
+    client.global.set("invalidToken", response.body?.token || "invalid-token");
 %}
 
 ### Get me (unauthorized) - expected to fail
-GET http://localhost:5169/api/auth/me
-Authorization: Bearer {{token2}}
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{invalidToken}}
