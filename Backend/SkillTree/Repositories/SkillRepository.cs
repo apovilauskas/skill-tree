@@ -31,6 +31,35 @@ public class SkillRepository : ISkillRepository
             .ToDictionaryAsync(p => p.SkillId);
     }
 
+    public async Task<bool> RemoveSkillAsync(int skillId)
+    {
+        var response = await _context.Skills.FirstOrDefaultAsync(s => s.Id == skillId);
+        if (response == null) return false;
+        _context.Skills.Remove(response);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> EditSkillAsync(int skillId, string name, string description, string metric)
+    {
+        var skill = await _context.Skills.FirstOrDefaultAsync(s => s.Id == skillId);
+        if (skill == null) return false;
+        if (!string.IsNullOrEmpty(name)) skill.Name = name;
+        if (!string.IsNullOrEmpty(description)) skill.Description = description;
+        if (!string.IsNullOrEmpty(metric)) skill.Metric = metric;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> RemovePrerequisiteAsync(int skillPrerequisiteId)
+    {
+        var skillPrerequisite = await _context.Prerequisites.FirstOrDefaultAsync(s => s.Id == skillPrerequisiteId);
+        if (skillPrerequisite == null) return false;
+        _context.Prerequisites.Remove(skillPrerequisite);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task AddAsync(Skill skill)
     {
         _context.Skills.Add(skill);

@@ -16,4 +16,7 @@ public interface ISkillService
     public Task<IEnumerable<CompletedSkillResponseDto>> GetCompletedSkillsAsync();
     public Task<IEnumerable<UnlockedSkillResponseDto>> GetRecommendationsAsync();
     public Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId);
+    public Task<bool> DeleteSkillAsync(int skillId);
+    public Task<bool> EditSkillAsync(int skillId, EditSkillDto editSkillDto);
+    public Task<bool> DeletePrerequisiteAsync(int skillPrerequisiteId);
 }   

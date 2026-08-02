@@ -97,6 +97,32 @@ public class SkillsController : ControllerBase
         var response = await _skillService.GetRecommendationsAsync();
         return Ok(response);
     }
+
+    [HttpDelete("deleteSkill/{skillId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteSkill(int skillId)
+    {
+        var response = await _skillService.DeleteSkillAsync(skillId);
+        if (!response) return NotFound("Skill not found");
+        return Ok("Skill deleted");
+    }
     
-    //httpdelete skill, httpput edit skill, httpdelete prerequisite - all admin-only
+    [HttpPut("editSkill/{skillId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> EditSkill(int skillId, [FromBody] EditSkillDto editSkillDto)
+    {
+        var response = await _skillService.EditSkillAsync(skillId, editSkillDto);
+        if (!response) return NotFound("Skill not found");
+        return Ok("Skill edited");
+    }
+    
+    [HttpDelete("deletePrerequisite/{skillPrerequisiteId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeletePrerequisite(int skillPrerequisiteId)
+    {
+        var response = await _skillService.DeletePrerequisiteAsync(skillPrerequisiteId);
+        if (!response) return NotFound("Relationship not found"); 
+        return Ok("Prerequisite removed");
+    }
+    
 }

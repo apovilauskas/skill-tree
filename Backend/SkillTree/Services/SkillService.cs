@@ -132,7 +132,22 @@ public class SkillService : ISkillService
     {
         return await _repository.GetUserSkillProgressAsync(userId, skillId);
     }
-    
+
+    public async Task<bool> DeleteSkillAsync(int skillId)
+    {
+        return await _repository.RemoveSkillAsync(skillId);
+    }
+
+    public async Task<bool> EditSkillAsync(int skillId, EditSkillDto editSkillDto)
+    {
+        return await _repository.EditSkillAsync(skillId, editSkillDto.name, editSkillDto.description, editSkillDto.metric);
+    }
+
+    public async Task<bool> DeletePrerequisiteAsync(int skillPrerequisiteId)
+    {
+        return await _repository.RemovePrerequisiteAsync(skillPrerequisiteId);
+    }
+
     private double Progress(double target, List<SkillLog> logs, DateTime createdAt)
     {
         if (logs.Count == 0) return 0.0;

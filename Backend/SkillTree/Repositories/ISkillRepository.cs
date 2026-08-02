@@ -23,4 +23,7 @@ public interface ISkillRepository
     public Task<UserSkillProgress> AddUserSkillProgressAsync(string userId, int skillId);
     public Task<IEnumerable<int>> GetCompletedSkillsIds(string userId);
     public Task<Dictionary<int, UserSkillProgress>> GetAllUserSkillProgressesAsync(string userId);
+    public Task<bool> RemoveSkillAsync(int skillId);
+    public Task<bool> EditSkillAsync(int skillId, string name, string description, string metric);
+    public Task<bool> RemovePrerequisiteAsync(int skillPrerequisiteId);
 }
