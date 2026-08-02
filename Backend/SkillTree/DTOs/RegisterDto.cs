@@ -2,6 +2,13 @@
 
 public class RegisterDto
 {
-    public string Username { get; set; }
-    public string Password { get; set; }
+    private string _username = string.Empty;
+
+    public string Username
+    {
+        get => _username;
+        set => _username = value?.Trim() ?? string.Empty;
+    }
+
+    public string Password { get; set; } = string.Empty;
 }
