@@ -70,7 +70,7 @@ public class SkillsController : ControllerBase
     {
         var response = await _skillService.CanStartAsync(skillId);
         if(response == CanStartResult.SkillNotFound) return NotFound("Skill not found");
-        if(response == CanStartResult.LockedByPrerequisites) return BadRequest("Skill is locked");
+        if(response == CanStartResult.LockedByPrerequisites) return Ok("Skill is locked");
         return Ok("Can Start");
     }
 
