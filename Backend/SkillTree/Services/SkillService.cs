@@ -128,7 +128,7 @@ public class SkillService : ISkillService
         return true;
     }
 
-    public async Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId)
+    private async Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId)
     {
         return await _repository.GetUserSkillProgressAsync(userId, skillId);
     }
@@ -147,34 +147,41 @@ public class SkillService : ISkillService
     {
         return await _repository.RemovePrerequisiteAsync(skillPrerequisiteId);
     }
-
+    
     private double Progress(double target, List<SkillLog> logs, DateTime createdAt)
     {
-        if (logs.Count == 0) return 0.0;
-        if (target <= 0) return 0.0;
+        if (logs == null || logs.Count == 0 || target <= 0)
+            return 0.0;
+
+        var practicedDays = logs
+            .Select(sl => sl.Date.Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToList();
+
+        double totalAmount = logs.Sum(sl => sl.Amount);
+        double daysPracticed = practicedDays.Count;
+        double daysSinceUnlock = Math.Max(1, (DateTime.UtcNow.Date - createdAt.Date).Days);
         
-        double totalAmount = logs.Sum(h => h.Amount);
-        var practicedLogsList = logs.Select(s => s.Date).Distinct().OrderByDescending(d => d.Date).ToList();
-        double daysPracticed = practicedLogsList.Count;
-        double daysSinceUnlock = (DateTime.UtcNow - createdAt).Days;
-        if (daysSinceUnlock < 1) daysSinceUnlock = 1;
-        
-        int streak = 0;
-        if(daysPracticed > 0)
+        int streak = 0; // must include today or yesterday, then count consecutive days backwards
+        if (practicedDays.Count > 0)
         {
             var today = DateTime.UtcNow.Date;
-            var yesterday =  today.AddDays(-1);
-            var mostRecentLog = practicedLogsList[0];
-            if (today == mostRecentLog.Date || yesterday == mostRecentLog.Date)
+            var mostRecent = practicedDays[0];
+
+            if (mostRecent == today || mostRecent == today.AddDays(-1))
             {
                 streak = 1;
-                for (int i = 0; i < practicedLogsList.Count-1; i++)
+                for (int i = 0; i < practicedDays.Count - 1; i++)
                 {
-                    if (practicedLogsList[i] == practicedLogsList[i + 1].AddDays(1)) streak++;
-                    else break;
-                } 
+                    if (practicedDays[i] == practicedDays[i + 1].AddDays(1))
+                        streak++;
+                    else
+                        break;
+                }
             }
         }
+        
         double consistencyMultiplier = 0.8 + 0.4 * (0.5 * daysPracticed / daysSinceUnlock + 0.5 * Math.Min(1, streak / 30.0));
         return Math.Min(100.0, totalAmount / target * consistencyMultiplier * 100.0); 
     }

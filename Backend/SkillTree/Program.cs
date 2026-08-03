@@ -12,22 +12,37 @@ using skill_tree.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Framework
+// framework
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+// data
+builder.Services.AddDbContext<SkillDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// identity and authentication
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
         options.Lockout.AllowedForNewUsers = true;
+
+        options.User.AllowedUserNameCharacters =
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_- ";
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequiredUniqueChars = 3;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireDigit = false;
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<SkillDbContext>()
     .AddSignInManager();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) 
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -42,12 +57,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
     });
+builder.Services.AddAuthorization();
 
-// Data
-builder.Services.AddDbContext<SkillDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Application services
+// services
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ICurrentUserService, ClaimsCurrentUserService>();
@@ -56,18 +68,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
-app.UseAuthentication(); 
-app.UseAuthorization();  
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-app.MapControllers();
-
+// seed roles and admin user
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -80,7 +81,7 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(roleName));
         }
     }
-    
+
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var adminEmail = builder.Configuration["AdminSeed:Username"];
     var adminPassword = builder.Configuration["AdminSeed:Password"];
@@ -95,5 +96,18 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
+
+// Middleware pipeline
+app.UseExceptionHandler();
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.MapControllers();
 
 app.Run();

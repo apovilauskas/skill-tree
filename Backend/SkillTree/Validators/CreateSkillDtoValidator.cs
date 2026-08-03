@@ -9,8 +9,11 @@ public class CreateSkillDtoValidator : AbstractValidator<CreateSkillDto>
     {
         RuleFor(x => x.Name)
          .NotEmpty().WithMessage("Name is required")
-            .Matches("^[a-zA-Z0-9_ -]+$").WithMessage("Name can only contain letters, numbers, hyphens, and underscores");  
-        RuleFor(x => x.Metric).NotEmpty().WithMessage("Metric is required");
+         .Length(6, 32).WithMessage("Name must be between 6 and 32 characters");
+        RuleFor(x => x.Metric).NotEmpty().WithMessage("Metric is required")
+            .MaximumLength(32);
         RuleFor(x => x.Target).GreaterThan(0).WithMessage("Target is required");
+        RuleFor(x => x.Description)
+            .MaximumLength(256).WithMessage("Description must not exceed 256 characters");
     }
 }

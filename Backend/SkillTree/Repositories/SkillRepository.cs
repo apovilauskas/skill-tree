@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using skill_tree.Common;
 using skill_tree.Data;
-using skill_tree.DTOs;
 using skill_tree.Entities;
-using skill_tree.SkillMappingExtensions;
 
 namespace skill_tree.Repositories;
 
@@ -138,7 +136,7 @@ public class SkillRepository : ISkillRepository
             UserId = userId,
             SkillId = x.Skill.Id,
             Skill = x.Skill,
-            SkillStatus = SkillStatus.Locked,
+            SkillStatus = SkillStatus.InProgress,
             StartedAt = x.Skill.CreatedAt
         });
     }
@@ -189,7 +187,7 @@ public class SkillRepository : ISkillRepository
             .ToListAsync();
     }
     
-    public async Task UpdateAsync(int skillId, string userId, SkillStatus newStatus)
+    public async Task<bool> UpdateAsync(int skillId, string userId, SkillStatus newStatus)
     {
         var progress = await _context.UserSkillProgresses
             .Where(s => s.UserId == userId)
@@ -202,8 +200,11 @@ public class SkillRepository : ISkillRepository
                 progress.CompletedAt = DateTime.UtcNow;
             }
             progress.SkillStatus = newStatus;
+            await _context.SaveChangesAsync();
+            return true;
         }
-        await _context.SaveChangesAsync();
+        
+        return false;
     }
 
     public async Task<UserSkillProgress?> GetUserSkillProgressAsync(string userId, int skillId)

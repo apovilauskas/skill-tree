@@ -42,5 +42,23 @@ public class SkillDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<UserSkillProgress>().
             HasIndex(s => new {s.UserId, s.SkillId}).
             IsUnique();
+        
+        modelBuilder.Entity<UserSkillProgress>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SkillLog>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<SkillLog>() //optional
+            .HasOne(sl => sl.Skill)
+            .WithMany()
+            .HasForeignKey(f => f.SkillId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
