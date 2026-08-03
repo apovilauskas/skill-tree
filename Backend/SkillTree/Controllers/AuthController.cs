@@ -37,7 +37,12 @@ public class AuthController : ControllerBase
         var result = await _userManager.CreateAsync(user, registerDto.Password);
         if (result.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user, "User");
+            var roleResult = await _userManager.AddToRoleAsync(user, "User");
+            if(!roleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                return BadRequest(roleResult.Errors);
+            }
             return Ok("User registered successfully");
         }
         return BadRequest(result.Errors);
