@@ -42,6 +42,10 @@ The project was built to practice a clean, layered .NET architecture: Controller
 | GET | `/api/skills/unlocked` | Any user | Get the caller's unlocked (in-progress) skills |
 | GET | `/api/skills/completed` | Any user | Get the caller's completed skills |
 | GET | `/api/skills/recommended` | Any user | Get the caller's top 3 recommended skills |
+| DELETE | `/api/skills/deletePrerequisite/{skillPrerequisiteId}` | Admin | Delete a prerequisite of a skill |
+| PUT | `/api/skills/editSkill/{skillId}` | Admin | Edit a skill's name, description or metric |
+| DELETE | `/api/skills/deleteSkill/{skillId}` | Admin | Delete a skill |
+
 
 ## Authentication & Authorization
 
