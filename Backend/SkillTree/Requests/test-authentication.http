@@ -6,8 +6,8 @@ POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "JohnDoe",
-  "password": "Password123!"
+  "username": "John_Doe",
+  "password": "Password123"
 }
 
 ### Login as the regular user
@@ -16,8 +16,8 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "JohnDoe",
-  "password": "Password123!"
+  "username": "John_Doe",
+  "password": "Password123"
 }
 
 > {%
@@ -30,8 +30,8 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "password": "AdminPassword123!"
+  "username": "Admin123",
+  "password": "AdminPassword123"
 }
 
 > {%

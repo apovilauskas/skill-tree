@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
         if (result.Succeeded)
         {
             var roleResult = await _userManager.AddToRoleAsync(user, "User");
-            if(!roleResult.Succeeded)
+            if (!roleResult.Succeeded)
             {
                 await _userManager.DeleteAsync(user);
                 return BadRequest(roleResult.Errors);
